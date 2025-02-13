@@ -61,8 +61,8 @@ exports.registerUser = async (req, res) => {
             role: 2
         });
 
-        return  res.status(200).json({ 
-            success: true, 
+        return res.status(200).json({
+            success: true,
             message: 'User registered successfully',
             userId: newUser.id
         });
@@ -118,29 +118,69 @@ exports.loginUser = async (req, res) => {
     }
 };
 
-exports.sendOtp = async (req, res) => {
+exports.forgetPassword = async (req, res) => {
     try {
         const { email } = req.body;
-
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-        const existingOtp = await Otp.findOne({ where: { email } });
-
-        if (existingOtp) {
-            await Otp.update({ otp }, { where: { email } });
-            console.log(`Updated OTP for ${email}`);
-        } else {
-            await Otp.create({ email, otp });
-            console.log(`Created new OTP for ${email}`);
+        if (!email) {
+            return res.status(400).json({ success: false, message: "Email is required" });
         }
 
-        await sendOtpEmail(email, otp);
+        const user = await User.findOne({ where: { email } });
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
 
-        return res.status(200).json({ success: true, message: 'Mail sent successfully', email: email });
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const hashedToken = await bcrypt.hash(resetToken, 10);
+
+        await User.update(
+            { reset_token: hashedToken },
+            { where: { email } }
+        );
+
+        await sendOtpEmail(email, resetToken);
+
+        return res.status(200).json({ success: true, message: 'Password reset email sent successfully' });
     } catch (error) {
-        return res.status(500).json({ success: false, error: error.message });
+        console.error("Forget password error:", error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
+
+exports.resetPassword = async (req, res) => {
+    try {
+        const { token, newPassword, confirmPassword } = req.body;
+
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({ success: false, message: "Passwords do not match" });
+        }
+
+        const user = await User.findOne({ where: { reset_token: token } });
+        if (!user || !user.reset_token) {
+            return res.status(400).json({ success: false, message: "Invalid or expired token" });
+        }
+
+        const isTokenValid = await bcrypt.compare(token, user.reset_token);
+        if (!isTokenValid) {
+            return res.status(400).json({ success: false, message: "Invalid token" });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await User.update(
+            { password: hashedPassword, reset_token: null },
+            { where: { reset_token: token } }
+        );
+
+        return res.status(200).json({ success: true, message: "Password reset successful" });
+    } catch (error) {
+        console.error("Reset password error:", error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+};
+
+
 
 exports.adminLogin = async (req, res) => {
     try {

@@ -25,9 +25,9 @@ exports.createproduct = async (req, res) => {
     });
 
 
-    res.status(201).json({ success: true, message: 'Product created successfully', data: product });
+    return res.status(201).json({ success: true, message: 'Product created successfully', data: product });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 };
 
@@ -42,9 +42,9 @@ exports.editproduct = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
 
-    res.status(200).json({ success: true, message: 'Product updated successfully' });
+    return res.status(200).json({ success: true, message: 'Product updated successfully' });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 };
 
@@ -53,9 +53,9 @@ exports.deleteproduct = async (req, res) => {
     const { slug } = req.params;
     await Product.update({ deletedAt: new Date() }, { where: { slug } });
 
-    res.status(200).json({ success: true, message: 'Product deleted successfully' });
+    return res.status(200).json({ success: true, message: 'Product deleted successfully' });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 };
 
@@ -63,9 +63,9 @@ exports.listCategories = async (req, res) => {
   try {
     const products = await Product.findAll({ where: { deletedAt: null } });
 
-    res.status(200).json({ success: true, data: products });
+    return res.status(200).json({ success: true, data: products });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 };
 
@@ -81,9 +81,9 @@ exports.listProductsPagination = async (req, res) => {
 
     const result = await paginate(Product, page, size, whereCondition);
 
-    res.status(200).json({ success: true, ...result });
+    return res.status(200).json({ success: true, ...result });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 };
 
@@ -96,8 +96,8 @@ exports.getproductBySlug = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
 
-    res.status(200).json({ success: true, data: product });
+    return res.status(200).json({ success: true, data: product });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    return  res.status(500).json({ success: false, error: error.message });
   }
 };

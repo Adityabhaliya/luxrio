@@ -7,7 +7,8 @@ const User = sequelize.define('User', {
     email: { type: DataTypes.STRING, allowNull: true },
     lastname: { type: DataTypes.STRING, allowNull: true },
     password: { type: DataTypes.STRING, allowNull: true },
-    profile: { type: DataTypes.STRING, allowNull: true },
+    profile: { type: DataTypes.STRING, allowNull: true }, 
+    reset_token: { type: DataTypes.STRING, allowNull: true },
     role: { type: DataTypes.INTEGER, allowNull: false },
 }); 
 

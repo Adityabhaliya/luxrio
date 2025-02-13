@@ -12,23 +12,21 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-const sendOtpEmail = async (email, otp) => {
-    console.log(process.env.NEXT_PUBLIC_EMAIL);
-    console.log(email);
-    console.log(otp);
-
+const sendOtpEmail = async (email, resetToken) => {
     try {
+        const resetLink = `http://localhost:3001/resetpassword?token=${resetToken}`;
+
         const mailOptions = {
             from: "adityabhaliya418@gmail.com",
             to: email,
-            subject: "🔐 Your OTP Code for Password Reset",
+            subject: "🔐 Reset Your Password",
             html: `
                 <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px; max-width: 500px;">
                     <h2 style="color: #333;">Hello,</h2>
                     <p style="font-size: 16px; color: #555;">
-                        You requested a password reset. Click the button below to proceed:
+                        You requested a password reset. Click the button below to reset your password:
                     </p>
-                    <a href="http://localhost:3001/resetpassword" 
+                    <a href="${resetLink}" 
                         style="display: inline-block; background-color: #007bff; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-size: 16px; margin: 10px 0;">
                         Reset Password
                     </a>
@@ -44,13 +42,12 @@ const sendOtpEmail = async (email, otp) => {
         };
 
         await transporter.sendMail(mailOptions);
-        console.log(`OTP sent to ${email}`);
+        console.log(`Reset password email sent to ${email}`);
     } catch (error) {
-        console.error('Error sending OTP email:', error.message);
-        throw new Error('Error sending OTP');
+        console.error('Error sending email:', error.message);
+        throw new Error('Error sending email');
     }
 };
-
 
 
 const paginate = async (model, page = 1, size = 10, where = {}) => {
