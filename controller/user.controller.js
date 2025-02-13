@@ -124,7 +124,7 @@ exports.forgetPassword = async (req, res) => {
         if (!email) {
             return res.status(400).json({ success: false, message: "Email is required" });
         }
-
+ 
         const user = await User.findOne({ where: { email } });
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
@@ -151,6 +151,9 @@ exports.resetPassword = async (req, res) => {
     try {
         const { token, newPassword, confirmPassword } = req.body;
 
+        if (!token || !newPassword || !confirmPassword) {
+            return res.status(400).json({ success: false, message: "All fields are required" });
+        }
 
         if (newPassword !== confirmPassword) {
             return res.status(400).json({ success: false, message: "Passwords do not match" });
@@ -161,13 +164,13 @@ exports.resetPassword = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid or expired token" });
         }
 
-        const isTokenValid = await bcrypt.compare(token, user.reset_token);
-        if (!isTokenValid) {
-            return res.status(400).json({ success: false, message: "Invalid token" });
-        }
+        // Convert password to a string (important fix)
+        const passwordString = newPassword.toString();
 
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(passwordString, 10);
 
+        // Update password and clear reset token
         await User.update(
             { password: hashedPassword, reset_token: null },
             { where: { reset_token: token } }
@@ -179,6 +182,7 @@ exports.resetPassword = async (req, res) => {
         return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
+
 
 
 
