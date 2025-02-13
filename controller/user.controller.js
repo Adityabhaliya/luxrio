@@ -61,7 +61,7 @@ exports.registerUser = async (req, res) => {
             role: 2
         });
 
-        return  res.status(201).json({ 
+        return  res.status(200).json({ 
             success: true, 
             message: 'User registered successfully',
             userId: newUser.id
