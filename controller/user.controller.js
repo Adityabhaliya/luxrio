@@ -5,6 +5,7 @@ const { sendOtpEmail, paginate } = require('../utils/common');
 const crypto = require('crypto');
 const multer = require('multer');
 const path = require('path');
+const { Op } = require('sequelize');
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
