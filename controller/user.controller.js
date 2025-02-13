@@ -27,39 +27,48 @@ exports.welcome = async (req, res) => {
 
 exports.registerUser = async (req, res) => {
     try {
-        const { name, email, password, confirmpassword, lastname, profile, email_otp } = req.body;
+        let { name, lastname, email, password, confirmpassword, profile, email_otp } = req.body;
 
-        const user = await User.findOne({ where: { email } });
-        if (user) {
-            return res.status(200).json({ success: false, message: 'Email already exists' });
+        if (!email || !password || !confirmpassword) {
+            return res.status(400).json({ success: false, message: 'Email, password, and confirm password are required' });
         }
 
-        // const otpRecord = await Otp.findOne({ where: { email } });
-        // if (!otpRecord) {
-        //     return res.status(400).json({ success: false, message: 'OTP not found for this email' });
-        // }
+        email = email.trim().toLowerCase();
 
-        // if (otpRecord.otp !== email_otp) {
+        if (password !== confirmpassword) {
+            return res.status(400).json({ success: false, message: 'Passwords do not match' });
+        }
+
+        const existingUser = await User.findOne({ where: { email } });
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: 'Email already exists' });
+        }
+
+        // OTP validation (Uncomment if required)
+        // const otpRecord = await Otp.findOne({ where: { email } });
+        // if (!otpRecord || otpRecord.otp !== email_otp) {
         //     return res.status(400).json({ success: false, message: 'Invalid OTP' });
         // }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const confirmpasswordhashedPassword = await bcrypt.hash(confirmpassword, 10);
 
         const newUser = await User.create({
-            name,
-            lastname,
+            name: name?.trim(),
+            lastname: lastname?.trim(),
             email,
             password: hashedPassword,
-            confirmpassword: confirmpasswordhashedPassword,
-            profile,
+            profile: profile || '',
+            role: 2
         });
 
-        res.status(200).json({ success: true, message: 'User registered successfully' });
+        return  res.status(201).json({ 
+            success: true, 
+            message: 'User registered successfully',
+            userId: newUser.id
+        });
     } catch (error) {
-        console.log(error.message);
-
-        res.status(500).json({ success: false, error: error.message });
+        console.error('Error in registerUser:', error);
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 };
 
@@ -102,10 +111,10 @@ exports.loginUser = async (req, res) => {
             }
 
             const token = generateToken(user.id);
-            res.status(200).json({ success: true, message: 'Login successful', token });
+            return res.status(200).json({ success: true, message: 'Login successful', token });
         }
     } catch (error) {
-        res.status(200).json({ success: false, message: error.message });
+        return res.status(200).json({ success: false, message: error.message });
     }
 };
 
@@ -124,12 +133,12 @@ exports.sendOtp = async (req, res) => {
             await Otp.create({ email, otp });
             console.log(`Created new OTP for ${email}`);
         }
- 
+
         await sendOtpEmail(email, otp);
 
-        res.status(200).json({ success: true, message: 'Mail sent successfully', email: email });
+        return res.status(200).json({ success: true, message: 'Mail sent successfully', email: email });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        return res.status(500).json({ success: false, error: error.message });
     }
 };
 
@@ -153,9 +162,9 @@ exports.adminLogin = async (req, res) => {
 
         const accessToken = generateToken(user.id, user.role);
 
-        res.status(200).json({ success: true, message: 'Admin login successful', data: { accessToken, user: { name: user.name, email: user.email } } });
+        return res.status(200).json({ success: true, message: 'Admin login successful', data: { accessToken, user: { name: user.name, email: user.email } } });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        return res.status(500).json({ success: false, error: error.message });
     }
 };
 
@@ -174,9 +183,9 @@ exports.uploadImage = async (req, res) => {
                 url: `${baseUrl}/${file.path}` // Full URL
             }));
 
-            res.status(200).json({ success: true, message: 'Image(s) uploaded successfully', files });
+            return res.status(200).json({ success: true, message: 'Image(s) uploaded successfully', files });
         });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        return res.status(500).json({ success: false, error: error.message });
     }
 };
