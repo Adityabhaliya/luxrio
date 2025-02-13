@@ -1,7 +1,7 @@
 const { User, Otp } = require('../schema');
 const { generateToken } = require('../tokenizer/token');
 const bcrypt = require('bcrypt');
-const { sendOtpEmail } = require('../utils/common');
+const { sendOtpEmail, paginate } = require('../utils/common');
 const crypto = require('crypto');
 const multer = require('multer');
 const path = require('path');
@@ -95,6 +95,10 @@ exports.loginUser = async (req, res) => {
             }
 
             const token = generateToken(user.id);
+            await User.update(
+                { last_login: new Date() }, 
+                { where: { email } }
+            );
             return res.status(200).json({ success: true, message: 'Login successful', token });
         } else {
 
@@ -111,6 +115,10 @@ exports.loginUser = async (req, res) => {
             }
 
             const token = generateToken(user.id);
+            await User.update(
+                { last_login: new Date() }, 
+                { where: { email } }
+            );
             return res.status(200).json({ success: true, message: 'Login successful', token });
         }
     } catch (error) {
@@ -229,6 +237,28 @@ exports.uploadImage = async (req, res) => {
 
             return res.status(200).json({ success: true, message: 'Image(s) uploaded successfully', files });
         });
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+exports.adminUserDetails = async (req, res) => {
+    try {
+        const { page = 1, size = 10, s = '' } = req.query; // Pagination & search query
+
+        const whereCondition = { role: 2 }; // Fetch only role 2 users
+
+        if (s) {
+            whereCondition[Op.or] = [
+                { name: { [Op.like]: `%${s}%` } },
+                { email: { [Op.like]: `%${s}%` } },
+                { lastname: { [Op.like]: `%${s}%` } }
+            ]; // Search by name or email
+        }
+
+        const result = await paginate(User, page, size, whereCondition);
+
+        return res.status(200).json({ success: true, ...result });
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
     }

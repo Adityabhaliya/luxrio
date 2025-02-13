@@ -10,6 +10,8 @@ const User = sequelize.define('User', {
     profile: { type: DataTypes.STRING, allowNull: true }, 
     reset_token: { type: DataTypes.STRING, allowNull: true },
     role: { type: DataTypes.INTEGER, allowNull: false },
+    last_login: { type: DataTypes.DATE, allowNull: true },  
+
 }); 
 
 module.exports = User;
