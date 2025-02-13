@@ -140,7 +140,7 @@ exports.forgetPassword = async (req, res) => {
 
         await sendOtpEmail(email, resetToken);
 
-        return res.status(200).json({ success: true, message: 'Password reset email sent successfully' });
+        return res.status(200).json({ success: true, message: 'Password reset email sent successfully' ,email });
     } catch (error) {
         console.error("Forget password error:", error);
         return res.status(500).json({ success: false, message: "Internal Server Error" });
