@@ -50,6 +50,8 @@ const sendOtpEmail = async (email, resetToken) => {
 };
 
 
+
+
 const paginate = async (model, page = 1, size = 10, where = {}) => {
     const limit = parseInt(size, 10);
     const offset = (parseInt(page, 10) - 1) * limit;
@@ -58,6 +60,7 @@ const paginate = async (model, page = 1, size = 10, where = {}) => {
         where,
         limit,
         offset,
+        order: [['createdAt', 'DESC']], // Sorting by createdAt in descending order
     });
 
     return {
@@ -67,6 +70,7 @@ const paginate = async (model, page = 1, size = 10, where = {}) => {
         data: rows,
     };
 };
+
 
 
 module.exports = { sendOtpEmail, paginate };

@@ -62,7 +62,7 @@ exports.listCategoriesPagination = async (req, res) => {
             whereCondition.name = { [Op.like]: `%${s}%` }; // Search by category name
         }
 
-        const result = await paginate(Category, page, size, whereCondition, [['createdAt', 'DESC']]); // Order by createdAt DESC
+        const result = await paginate(Category, page, size, whereCondition);
 
         res.status(200).json({ success: true, ...result });
     } catch (error) {
