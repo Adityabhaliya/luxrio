@@ -76,16 +76,17 @@ exports.listProductsPagination = async (req, res) => {
     const whereCondition = { deletedAt: null };
 
     if (s) {
-      whereCondition.name = { [Op.like]: `%${s}%` }; // Search by category name
+      whereCondition.name = { [Op.like]: `%${s}%` }; // Search by product name
     }
 
-    const result = await paginate(Product, page, size, whereCondition);
+    const result = await paginate(Product, page, size, whereCondition, [['createdAt', 'DESC']]); // Order by createdAt DESC
 
     return res.status(200).json({ success: true, ...result });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
 };
+
 
 exports.getproductBySlug = async (req, res) => {
   try {
