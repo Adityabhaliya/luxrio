@@ -82,3 +82,24 @@ exports.getCategoryBySlug = async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 };
+ 
+exports.adminCategoryBlock = async (req, res) => {
+    try {
+        const { id, is_block } = req.body; // Get category ID & block status from request
+
+        if (typeof is_block !== 'boolean') {
+            return res.status(400).json({ success: false, message: "Invalid block status" });
+        }
+
+        const category = await Category.findByPk(id);
+        if (!category) {
+            return res.status(404).json({ success: false, message: "Category not found" });
+        }
+
+        await Category.update({ is_block }, { where: { id } });
+
+        return res.status(200).json({ success: true, message: `Category ${is_block ? 'blocked' : 'unblocked'} successfully` });
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+};

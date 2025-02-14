@@ -7,6 +7,7 @@ const category = sequelize.define('categories', {
     image: { type: DataTypes.STRING },
     slug: { type: DataTypes.STRING },
     deletedAt: { type: DataTypes.DATE },
+    is_block: { type: DataTypes.BOOLEAN },
 });
 
 module.exports = category;

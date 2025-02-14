@@ -11,6 +11,8 @@ const User = sequelize.define('User', {
     reset_token: { type: DataTypes.STRING, allowNull: true },
     role: { type: DataTypes.INTEGER, allowNull: false },
     last_login: { type: DataTypes.DATE, allowNull: true },  
+    is_block: { type: DataTypes.BOOLEAN },
+
 
 }); 
 

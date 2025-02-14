@@ -47,6 +47,8 @@ const Product = sequelize.define('products', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+  is_block: { type: DataTypes.BOOLEAN },
+
   material_type: {
     type: DataTypes.ENUM('gold', 'silver', 'Yellow gold', 'White gold', 'Rose gold'),
     allowNull: true,
