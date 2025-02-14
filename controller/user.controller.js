@@ -109,6 +109,10 @@ exports.loginUser = async (req, res) => {
                 return res.status(200).json({ success: false, message: 'User not found' });
             }
 
+            if(user.is_block === true){
+                return res.status(200).json({ success: false, message: 'Your account is block Please contact to Administrator.' });
+
+            }
             const isPasswordValid = await bcrypt.compare(password, user.password);
 
             if (!isPasswordValid) {
