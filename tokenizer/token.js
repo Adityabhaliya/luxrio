@@ -35,7 +35,7 @@ exports.verifyUserToken = (req, res, next) => {
       const decoded = jwt.verify(token, SECRET_KEY);
       req.user = decoded;
       if (req.user.role !== 2) {
-          return res.status(403).json({ success: false, message: 'Access Denied: Not an Admin' });
+          return res.status(403).json({ success: false, message: 'Access Denied: Not an User' });
       }
       next();
   } catch (error) {

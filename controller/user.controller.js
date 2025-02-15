@@ -95,7 +95,7 @@ exports.loginUser = async (req, res) => {
 
             }
 
-            const token = generateToken(user.id);
+            const token = generateToken(user.id, user.role);
             await User.update(
                 { last_login: new Date() }, 
                 { where: { email } }
@@ -119,7 +119,7 @@ exports.loginUser = async (req, res) => {
                 return res.status(200).json({ success: false, message: 'Invalid Password' });
             }
 
-            const token = generateToken(user.id);
+            const token = generateToken(user.id, user.role);
             await User.update(
                 { last_login: new Date() }, 
                 { where: { email } }

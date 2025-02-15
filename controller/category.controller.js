@@ -52,6 +52,15 @@ exports.listCategories = async (req, res) => {
     }
 };
 
+exports.listCategoriesUser = async (req, res) => {
+    try {
+        const categories = await Category.findAll({ where: { deletedAt: null ,is_block:false } });
+        res.status(200).json({ success: true, categories });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 exports.listCategoriesPagination = async (req, res) => {
     try {
         const { page = 1, size = 10, s = '' } = req.query; // Search term 's'

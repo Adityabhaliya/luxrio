@@ -87,6 +87,23 @@ exports.listProductsPagination = async (req, res) => {
   }
 };
 
+exports.listProductsPaginationUser = async (req, res) => {
+  try {
+    const { page = 1, size = 10, s = '' } = req.query; // Search term 's'
+
+    const whereCondition = { deletedAt: null, is_block: false };
+
+    if (s) {
+      whereCondition.name = { [Op.like]: `%${s}%` };
+    }
+
+    const result = await paginate(Product, page, size, whereCondition);
+    return res.status(200).json({ success: true, ...result });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 
 exports.getproductBySlug = async (req, res) => {
   try {
@@ -99,27 +116,27 @@ exports.getproductBySlug = async (req, res) => {
 
     return res.status(200).json({ success: true, data: product });
   } catch (error) {
-    return  res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 };
 
 exports.adminProductBlock = async (req, res) => {
   try {
-      const { id, is_block } = req.body; // Get product ID & block status from request
+    const { id, is_block } = req.body; // Get product ID & block status from request
 
-      if (typeof is_block !== 'boolean') {
-          return res.status(400).json({ success: false, message: "Invalid block status" });
-      }
+    if (typeof is_block !== 'boolean') {
+      return res.status(400).json({ success: false, message: "Invalid block status" });
+    }
 
-      const product = await Product.findByPk(id);
-      if (!product) {
-          return res.status(404).json({ success: false, message: "Product not found" });
-      }
+    const product = await Product.findByPk(id);
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
 
-      await Product.update({ is_block }, { where: { id } });
+    await Product.update({ is_block }, { where: { id } });
 
-      return res.status(200).json({ success: true, message: `Product ${is_block ? 'blocked' : 'unblocked'} successfully` });
+    return res.status(200).json({ success: true, message: `Product ${is_block ? 'blocked' : 'unblocked'} successfully` });
   } catch (error) {
-      return res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 };
