@@ -15,7 +15,7 @@ exports.createblog = async (req, res) => {
 
     const slug = slugify(title, { lower: true });
 
-    const blog = await blog.create({
+    const blogs = await blog.create({
       title,
       description,
       images,
@@ -26,7 +26,7 @@ exports.createblog = async (req, res) => {
     });
 
 
-    return res.status(201).json({ success: true, message: 'blog created successfully', data: blog });
+    return res.status(201).json({ success: true, message: 'blog created successfully', data: blogs });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
