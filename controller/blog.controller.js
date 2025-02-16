@@ -77,7 +77,7 @@ exports.listblogsPagination = async (req, res) => {
     const whereCondition = { deletedAt: null };
 
     if (s) {
-      whereCondition.name = { [Op.like]: `%${s}%` }; // Search by blog name
+      whereCondition.title = { [Op.like]: `%${s}%` }; // Search by blog name
     }
 
     const result = await paginate(blog, page, size, whereCondition); // Order by createdAt DESC
