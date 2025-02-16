@@ -129,8 +129,8 @@ exports.adminblogBlock = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid block status" });
     }
 
-    const blog = await blog.findByPk(id);
-    if (!blog) {
+    const blogs = await blog.findByPk(id);
+    if (!blogs) {
       return res.status(404).json({ success: false, message: "blog not found" });
     }
 
