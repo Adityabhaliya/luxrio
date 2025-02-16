@@ -3,6 +3,7 @@ const sequelize = require('../db/db.config');
 
 const blogs = sequelize.define('blogs', {
   title: { type: DataTypes.STRING },
+  slug: { type: DataTypes.STRING },
   description: { type: DataTypes.STRING },
   images: { type: DataTypes.JSON },
   meta_title: { type: DataTypes.STRING },
