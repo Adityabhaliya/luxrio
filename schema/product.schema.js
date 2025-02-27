@@ -34,6 +34,10 @@ const Product = sequelize.define('products', {
     type: DataTypes.FLOAT,
     allowNull: true,
   },
+  prices: {
+    type: DataTypes.JSON,
+    allowNull: true,
+  },
   international_price: {
     type: DataTypes.FLOAT,
     allowNull: true,

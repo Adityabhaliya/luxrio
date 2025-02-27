@@ -6,9 +6,12 @@ const { Op } = require('sequelize');
 
 exports.createproduct = async (req, res) => {
   try {
-    const { name, category, images, gender, weight, is_new, price, international_price, quantity, description, } = req.body;
+    const { name, category, images, gender, weight, is_new, price, international_price, quantity, description, prices } = req.body;
 
     const slug = slugify(name, { lower: true });
+
+    // Ensure prices is stored as JSON
+    const formattedPrices = prices && typeof prices === 'object' ? JSON.stringify(prices) : null;
 
     const product = await Product.create({
       name,
@@ -22,8 +25,8 @@ exports.createproduct = async (req, res) => {
       international_price,
       quantity,
       description,
+      prices: formattedPrices, // Store JSON data properly
     });
-
 
     return res.status(201).json({ success: true, message: 'Product created successfully', data: product });
   } catch (error) {
@@ -34,7 +37,12 @@ exports.createproduct = async (req, res) => {
 exports.editproduct = async (req, res) => {
   try {
     const { slug } = req.params;
-    const updateData = req.body;
+    let updateData = req.body;
+
+    // Ensure prices is stored as JSON if provided
+    if (updateData.prices && typeof updateData.prices === 'object') {
+      updateData.prices = JSON.stringify(updateData.prices);
+    }
 
     const updatedProduct = await Product.update(updateData, { where: { slug } });
 
