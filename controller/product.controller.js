@@ -122,15 +122,18 @@ exports.listProductsPaginationUserBYSlug = async (req, res) => {
     const { slug } = req.params;
     const whereCondition = { deletedAt: null, is_block: false, slug };
 
-    // Fetch all products that match the whereCondition
-    const products = await Product.findAll({ where: whereCondition });
+    // Fetch a single product that matches the whereCondition
+    const product = await Product.findOne({ where: whereCondition });
 
-    return res.status(200).json({ success: true, data: products });
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    return res.status(200).json({ success: true, data: product });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
 };
-
  
 
 exports.listRecommandProductsPaginationUserBYSlug = async (req, res) => {
