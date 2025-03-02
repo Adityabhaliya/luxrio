@@ -11,7 +11,7 @@ router.get('/admin/product-list', verifyAdminToken,listProductsPagination);
 router.get('/user/product-list',listProductsPaginationUser);
 router.get('/admin/product-list/:slug',verifyAdminToken, getproductBySlug);
 router.put('/admin/product-block', verifyAdminToken ,adminProductBlock);
-router.get('/user/product-list/:slug',listProductsPaginationUserBYSlug);
+router.get('/user/product-detail/:slug',listProductsPaginationUserBYSlug);
 router.get('/user/recommand-product-list',listRecommandProductsPaginationUserBYSlug);
 
 

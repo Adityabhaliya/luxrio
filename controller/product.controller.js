@@ -119,16 +119,17 @@ exports.listProductsPaginationUser = async (req, res) => {
 
 exports.listProductsPaginationUserBYSlug = async (req, res) => {
   try {
-    const { page = 1, size = 10 } = req.query;
-    const {slug} = req.params;
-    const whereCondition = { deletedAt: null, is_block: false ,slug };
- 
-    const result = await paginate(Product, page, size, whereCondition);
-    return res.status(200).json({ success: true, ...result });
+    const { slug } = req.params;
+    const whereCondition = { deletedAt: null, is_block: false, slug };
+
+    // Fetch all products that match the whereCondition
+    const products = await Product.findAll({ where: whereCondition });
+
+    return res.status(200).json({ success: true, data: products });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
-}
+};
 
  
 
