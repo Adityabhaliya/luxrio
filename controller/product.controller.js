@@ -95,6 +95,7 @@ exports.listProductsPagination = async (req, res) => {
   }
 };
 
+
 exports.listProductsPaginationUser = async (req, res) => {
   try {
     const { page = 1, size = 10, s = '' } = req.query; // Search term 's'
@@ -102,7 +103,10 @@ exports.listProductsPaginationUser = async (req, res) => {
     const whereCondition = { deletedAt: null, is_block: false };
 
     if (s) {
-      whereCondition.name = { [Op.like]: `%${s}%` };
+      whereCondition[Op.or] = [
+        { name: { [Op.like]: `%${s}%` } }, // Search by name
+        { category: { [Op.like]: `%${s}%` } } // Search by category
+      ];
     }
 
     const result = await paginate(Product, page, size, whereCondition);
@@ -111,6 +115,52 @@ exports.listProductsPaginationUser = async (req, res) => {
     return res.status(500).json({ success: false, error: error.message });
   }
 };
+
+
+exports.listProductsPaginationUserBYSlug = async (req, res) => {
+  try {
+    const { page = 1, size = 10 } = req.query;
+    const {slug} = req.params;
+    const whereCondition = { deletedAt: null, is_block: false ,slug };
+ 
+    const result = await paginate(Product, page, size, whereCondition);
+    return res.status(200).json({ success: true, ...result });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+ 
+
+exports.listRecommandProductsPaginationUserBYSlug = async (req, res) => {
+  try {
+    const { page = 1, size = 10 } = req.query;
+    const { slug } = req.query;
+
+    // Find the product by slug
+    const product = await Product.findOne({ where: { slug, deletedAt: null, is_block: false } });
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    // Fetch all products with the same category
+    const whereCondition = { 
+      deletedAt: null, 
+      is_block: false, 
+      category: product.category // Assuming category_id exists in Product model
+    };
+
+    const result = await paginate(Product, page, size, whereCondition);
+
+    return res.status(200).json({ success: true, ...result });
+
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+
 
 
 exports.getproductBySlug = async (req, res) => {
