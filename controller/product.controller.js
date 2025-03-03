@@ -10,9 +10,9 @@ exports.createproduct = async (req, res) => {
 
     const slug = slugify(name, { lower: true });
 
-    // Ensure prices and material_type are stored as JSON
+    // Ensure prices and material are stored as JSON
     const formattedPrices = prices && typeof prices === 'object' ? JSON.stringify(prices) : null;
-    const formattedMaterialType = material && Array.isArray(material) ? JSON.stringify(material) : null;
+    const formattedMaterial = material && Array.isArray(material) ? JSON.stringify(material) : null;
 
     const product = await Product.create({
       name,
@@ -27,7 +27,7 @@ exports.createproduct = async (req, res) => {
       quantity,
       description,
       prices: formattedPrices, // Store JSON data properly
-      material: formattedMaterialType, // Store material_type as JSON
+      material: formattedMaterial, // Store material as JSON
     });
 
     return res.status(201).json({ success: true, message: 'Product created successfully', data: product });
@@ -41,7 +41,12 @@ exports.editproduct = async (req, res) => {
     const { slug } = req.params;
     let updateData = req.body;
 
-    // Ensure prices and material_type are stored as JSON if provided
+    // If the name is being updated, regenerate the slug
+    if (updateData.name) {
+      updateData.slug = slugify(updateData.name, { lower: true });
+    }
+
+    // Ensure prices and material are stored as JSON if provided
     if (updateData.prices && typeof updateData.prices === 'object') {
       updateData.prices = JSON.stringify(updateData.prices);
     }
