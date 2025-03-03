@@ -38,6 +38,10 @@ const Product = sequelize.define('products', {
     type: DataTypes.JSON,
     allowNull: true,
   },
+  material: {
+    type: DataTypes.ARRAY(DataTypes.STRING), // Change to ARRAY of STRING
+    allowNull: true,
+  },
   international_price: {
     type: DataTypes.FLOAT,
     allowNull: true,
@@ -52,11 +56,7 @@ const Product = sequelize.define('products', {
     allowNull: true,
   },
   is_block: { type: DataTypes.BOOLEAN },
-
-  material_type: {
-    type: DataTypes.ENUM('gold', 'silver', 'Yellow gold', 'White gold', 'Rose gold'),
-    allowNull: true,
-  },
+ 
 }, {
   timestamps: true,   
   paranoid: true,    
