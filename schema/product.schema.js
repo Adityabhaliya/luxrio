@@ -39,7 +39,7 @@ const Product = sequelize.define('products', {
     allowNull: true,
   },
   material: {
-    type: DataTypes.ARRAY(DataTypes.STRING), // Change to ARRAY of STRING
+    type: DataTypes.JSON, // Change to JSON
     allowNull: true,
   },
   international_price: {
