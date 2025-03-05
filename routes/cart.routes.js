@@ -6,9 +6,9 @@ const router = express.Router();
 
 
 router.post('/user/cart-create', verifyUserToken, addToCart);
-router.put('/user/cart-edit', verifyUserToken, editCart);
+router.put('/user/cart-edit/:id', verifyUserToken, editCart);
 router.get('/user/cart-list', verifyUserToken, listCart); 
-router.delete('/user/cart-delete', verifyUserToken, deleteCartItem);
+router.delete('/user/cart-delete/:id', verifyUserToken, deleteCartItem);
 
 module.exports = router;
 

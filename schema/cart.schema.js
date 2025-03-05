@@ -9,7 +9,7 @@ const Cart = sequelize.define('carts', {
     amount: { type: DataTypes.NUMBER, allowNull: true },
     size: { type: DataTypes.NUMBER, allowNull: true },
     carat: { type: DataTypes.NUMBER, allowNull: true },   
-    material_type: { type: DataTypes.NUMBER, allowNull: true }, 
+    material_type: { type: DataTypes.STRING, allowNull: true }, 
 });
 
 module.exports = Cart;
