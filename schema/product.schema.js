@@ -38,6 +38,14 @@ const Product = sequelize.define('products', {
     type: DataTypes.JSON,
     allowNull: true,
   },
+    is_sell: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  size: {
+    type: DataTypes.JSON,
+    allowNull: true,
+  },
   material: {
     type: DataTypes.JSON, // Change to JSON
     allowNull: true,

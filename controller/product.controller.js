@@ -6,13 +6,14 @@ const { Op } = require('sequelize');
 
 exports.createproduct = async (req, res) => {
   try {
-    const { name, category, images, gender, weight, is_new, price, international_price, quantity, description, prices, material } = req.body;
+    const { name, category, images, gender, weight, is_new, price, size, international_price, quantity, description, prices, material } = req.body;
 
     const slug = slugify(name, { lower: true });
 
     // Ensure prices and material are stored as JSON
     const formattedPrices = prices && typeof prices === 'object' ? JSON.stringify(prices) : null;
     const formattedMaterial = material && Array.isArray(material) ? JSON.stringify(material) : null;
+    const formattedsize = size && Array.isArray(size) ? JSON.stringify(size) : null;
 
     const product = await Product.create({
       name,
@@ -28,6 +29,7 @@ exports.createproduct = async (req, res) => {
       description,
       prices: formattedPrices, // Store JSON data properly
       material: formattedMaterial, // Store material as JSON
+      size: formattedsize
     });
 
     return res.status(201).json({ success: true, message: 'Product created successfully', data: product });
@@ -36,35 +38,49 @@ exports.createproduct = async (req, res) => {
   }
 };
 
-exports.editproduct = async (req, res) => {
-  try {
-    const { slug } = req.params;
-    let updateData = req.body;
+ 
 
-    // If the name is being updated, regenerate the slug
-    if (updateData.name) {
-      updateData.slug = slugify(updateData.name, { lower: true });
-    }
+ 
 
-    // Ensure prices and material are stored as JSON if provided
-    if (updateData.prices && typeof updateData.prices === 'object') {
-      updateData.prices = JSON.stringify(updateData.prices);
-    }
-    if (updateData.material && Array.isArray(updateData.material)) {
-      updateData.material = JSON.stringify(updateData.material);
-    }
+    exports.editproduct = async (req, res) => {
+      try {
+        const { slug } = req.params;
+        let updateData = req.body;
 
-    const updatedProduct = await Product.update(updateData, { where: { slug } });
+        if (updateData.name) {
+          updateData.slug = slugify(updateData.name, { lower: true });
+        }
 
-    if (!updatedProduct[0]) {
-      return res.status(404).json({ success: false, message: 'Product not found' });
-    }
+        if (updateData.prices && typeof updateData.prices === 'object') {
+          updateData.prices = JSON.stringify(updateData.prices);
+        }
+        if (updateData.material && Array.isArray(updateData.material)) {
+          updateData.material = JSON.stringify(updateData.material);
+        }
+        if (updateData.size && Array.isArray(updateData.size)) {
+          updateData.size = JSON.stringify(updateData.size);
+        }
 
-    return res.status(200).json({ success: true, message: 'Product updated successfully' });
-  } catch (error) {
-    return res.status(500).json({ success: false, error: error.message });
-  }
-};
+        if (updateData.is_sell === true) {
+          const activeSellCount = await Product.count({ where: { is_sell: true } });
+          if (activeSellCount >= 4) {
+            return res.status(400).json({ success: false, message: 'Only a maximum of 4 products can have is_sell set to true.' });
+          }
+        }
+
+        const updatedProduct = await Product.update(updateData, { where: { slug } });
+
+        if (!updatedProduct[0]) {
+          return res.status(404).json({ success: false, message: 'Product not found' });
+        }
+
+        return res.status(200).json({ success: true, message: 'Product updated successfully' });
+      } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+      }
+    };
+
+  
 
 exports.deleteproduct = async (req, res) => {
   try {
@@ -127,6 +143,28 @@ exports.listProductsPaginationUser = async (req, res) => {
 };
 
 
+exports.listSellProductsPaginationUser = async (req, res) => {
+  try {
+    const { s = '' } = req.query; // Search term 's'
+    const whereCondition = { deletedAt: null, is_block: false, is_sell: true };
+
+    if (s) {
+      whereCondition[Op.or] = [
+        { name: { [Op.like]: `%${s}%` } }, // Search by name
+        { category: { [Op.like]: `%${s}%` } } // Search by category
+      ];
+    }
+
+    const products = await Product.findAll({ where: whereCondition });
+    return res.status(200).json({ success: true, products });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+
+
+
 exports.listProductsPaginationUserBYSlug = async (req, res) => {
   try {
     const { slug } = req.params;
@@ -144,7 +182,7 @@ exports.listProductsPaginationUserBYSlug = async (req, res) => {
     return res.status(500).json({ success: false, error: error.message });
   }
 };
- 
+
 
 exports.listRecommandProductsPaginationUserBYSlug = async (req, res) => {
   try {
@@ -159,9 +197,9 @@ exports.listRecommandProductsPaginationUserBYSlug = async (req, res) => {
     }
 
     // Fetch all products with the same category
-    const whereCondition = { 
-      deletedAt: null, 
-      is_block: false, 
+    const whereCondition = {
+      deletedAt: null,
+      is_block: false,
       category: product.category // Assuming category_id exists in Product model
     };
 
