@@ -1,4 +1,5 @@
 const Cart = require('../schema/cart.schema');
+const Product = require('../schema/product.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op } = require('sequelize');
@@ -38,7 +39,13 @@ exports.listCart = async (req, res) => {
         const user_id = req.user.id; // Get user_id from token
         const whereCondition = user_id ? { user_id } : {};
         const cartItems = await Cart.findAll({ where: whereCondition });
-        return res.status(200).json({ success: true, cartItems });
+
+        const cartWithProducts = await Promise.all(cartItems.map(async (cartItem) => {
+            const product = await Product.findOne({ where: { id: cartItem.product_id } });
+            return { ...cartItem.toJSON(), product };
+        }));
+
+        return res.status(200).json({ success: true, cartItems: cartWithProducts });
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
     }
