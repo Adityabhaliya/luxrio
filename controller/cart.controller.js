@@ -8,8 +8,8 @@ exports.addToCart = async (req, res) => {
     try {
         const user_id = req.user.id; // Get user_id from token
 
-        const {   product_id, quantity, amount, size, carat, material_type } = req.body;
-        const cartItem = await Cart.create({ user_id, product_id, quantity, amount, size, carat, material_type });
+        const { product_id, quantity, amount, size, carat, material_type, weight } = req.body;
+        const cartItem = await Cart.create({ user_id, product_id, quantity, amount, size, carat, material_type, weight });
         return res.status(201).json({ success: true, message: 'Item added to cart', cartItem });
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
