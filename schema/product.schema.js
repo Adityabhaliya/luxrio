@@ -18,6 +18,7 @@ const Product = sequelize.define('products', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+
   weight: {
     type: DataTypes.STRING,
     allowNull: true,
@@ -29,6 +30,10 @@ const Product = sequelize.define('products', {
   is_new: {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
+  },
+  is_size: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
   },
   price: {
     type: DataTypes.FLOAT,
