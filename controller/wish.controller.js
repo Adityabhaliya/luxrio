@@ -21,14 +21,42 @@ exports.addToWishlist = async (req, res) => {
 exports.listWishlist = async (req, res) => {
     try {
         const user_id = req.user.id;
-        const wishlistItems = await Wishlist.findAll({ where: { user_id } });
+        const { page = 1, size = 10, search = '' } = req.query; // Add search parameter
 
-        const wishlistWithProducts = await Promise.all(wishlistItems.map(async (wishlistItem) => {
-            const product = await Product.findOne({ where: { id: wishlistItem.product_id } });
-            return { ...wishlistItem.toJSON(), product };
-        }));
+        const limit = parseInt(size, 10);
+        const offset = (parseInt(page, 10) - 1) * limit;
 
-        return res.status(200).json({ success: true, wishlist: wishlistWithProducts });
+        // Fetch paginated wishlist items
+        const { count, rows: wishlistItems } = await Wishlist.findAndCountAll({
+            where: { user_id },
+            limit,
+            offset,
+            order: [['createdAt', 'DESC']], // Sorting by createdAt in descending order
+        });
+
+        // Fetch associated products for each wishlist item and apply search filter
+        const wishlistWithProducts = await Promise.all(
+            wishlistItems.map(async (wishlistItem) => {
+                const product = await Product.findOne({
+                    where: {
+                        id: wishlistItem.product_id,
+                        name: { [Op.like]: `%${search}%` }, // Apply search filter
+                    },
+                });
+                return product ? { ...wishlistItem.toJSON(), product } : null;
+            })
+        );
+
+        // Filter out null values (products that don't match the search term)
+        const filteredWishlist = wishlistWithProducts.filter((item) => item !== null);
+
+        return res.status(200).json({
+            success: true,
+            wishlist: filteredWishlist,
+            totalItems: count,
+            totalPages: Math.ceil(count / limit),
+            currentPage: parseInt(page, 10),
+        });
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
     }

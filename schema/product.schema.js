@@ -69,6 +69,7 @@ const Product = sequelize.define('products', {
     allowNull: true,
   },
   is_block: { type: DataTypes.BOOLEAN },
+  
  
 }, {
   timestamps: true,   
