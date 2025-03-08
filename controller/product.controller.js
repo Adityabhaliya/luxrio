@@ -2,6 +2,7 @@ const Product = require('../schema/product.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op } = require('sequelize');
+const { Wishlist } = require('../schema');
 
 
 exports.createproduct = async (req, res) => {
@@ -178,7 +179,39 @@ exports.listProductsPaginationUserBYSlug = async (req, res) => {
     }
 
     return res.status(200).json({ success: true, data: product });
-  } catch (error) {
+  } catch (error) {exports.listProductsPaginationUserBYSlug = async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const { user_id } = req.query; // Assuming user_id is passed as a query parameter
+  
+      const whereCondition = { deletedAt: null, is_block: false, slug };
+  
+      // Fetch a single product that matches the whereCondition
+      const product = await Product.findOne({ where: whereCondition });
+  
+      if (!product) {
+        return res.status(404).json({ success: false, message: "Product not found" });
+      }
+  
+      // Check if the product is in the user's wishlist
+      const isInWishlist = await Wishlist.findOne({
+        where: {
+          user_id: user_id,
+          product_id: product.id, // Use the product's ID from the fetched product
+        },
+      });
+  
+      // Add is_wish field to the response
+      const response = {
+        ...product.toJSON(), // Convert Sequelize instance to plain object
+        is_wish: !!isInWishlist, // Set to true if the product is in the wishlist, otherwise false
+      };
+  
+      return res.status(200).json({ success: true, data: response });
+    } catch (error) {
+      return res.status(500).json({ success: false, error: error.message });
+    }
+  };
     return res.status(500).json({ success: false, error: error.message });
   }
 };
