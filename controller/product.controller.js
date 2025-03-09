@@ -170,7 +170,7 @@ exports.listSellProductsPaginationUser = async (req, res) => {
 exports.listProductsPaginationUserBYSlug = async (req, res) => {
   try {
     const { slug } = req.params;
-    const { user_id } = req.query; // Assuming user_id is passed as a query parameter
+    const user_id  = req.user.id; // Assuming user_id is passed as a query parameter
 
     const whereCondition = { deletedAt: null, is_block: false, slug };
 
