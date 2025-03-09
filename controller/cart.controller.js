@@ -3,6 +3,7 @@ const Product = require('../schema/product.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op } = require('sequelize');
+const { Setting } = require('../schema');
 
 exports.addToCart = async (req, res) => {
     try {
@@ -40,12 +41,21 @@ exports.listCart = async (req, res) => {
         const whereCondition = user_id ? { user_id } : {};
         const cartItems = await Cart.findAll({ where: whereCondition });
 
+        const settings = await Setting.findOne();
+
         const cartWithProducts = await Promise.all(cartItems.map(async (cartItem) => {
             const product = await Product.findOne({ where: { id: cartItem.product_id } });
             return { ...cartItem.toJSON(), product };
         }));
 
-        return res.status(200).json({ success: true, cartItems: cartWithProducts });
+        return res.status(200).json({
+            success: true,
+            cartItems: cartWithProducts,
+            sale_tax: settings?.sale_tax || 0,
+            international_sale_tax: settings?.international_sale_tax || 0,
+            shipping_charge: settings?.shipping_charge || 0,
+            international_shipping_charge: settings?.international_shipping_charge || 0,
+        });
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
     }
