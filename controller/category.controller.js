@@ -2,6 +2,7 @@ const Category = require('../schema/category.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op } = require('sequelize');
+const { Setting } = require('../schema');
 
 exports.createCategory = async (req, res) => {
     try {
@@ -109,6 +110,35 @@ exports.adminCategoryBlock = async (req, res) => {
         await Category.update({ is_block }, { where: { id } });
 
         return res.status(200).json({ success: true, message: `Category ${is_block ? 'blocked' : 'unblocked'} successfully` });
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+
+
+
+exports.getSettings = async (req, res) => {
+    try {
+        const settings = await Setting.findOne();
+        return res.status(200).json({ success: true, settings });
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+exports.updateSettings = async (req, res) => {
+    try {
+        const updateData = req.body;
+        let settings = await Setting.findOne();
+        
+        if (settings) {
+            await settings.update(updateData);
+        } else {
+            settings = await Setting.create(updateData);
+        }
+
+        return res.status(200).json({ success: true, message: 'Settings updated successfully', settings });
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
     }
