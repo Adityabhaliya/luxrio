@@ -4,11 +4,11 @@ const { createAddress, deleteAddress, getAllAddresses, getAddressById, updateAdd
 
 const router = express.Router();
 
-router.post('/admin/address-create', verifyUserToken, createAddress);
-router.put('/admin/address-edit/:id', verifyUserToken, updateAddress);
-router.delete('/admin/address/:id', verifyUserToken, deleteAddress);
-router.get('/admin/address-list', verifyUserToken, getAllAddresses);
-router.get('/admin/address-list/:id', verifyUserToken, getAddressById);
+router.post('/user/address-create', verifyUserToken, createAddress);
+router.put('/user/address-edit/:id', verifyUserToken, updateAddress);
+router.delete('/user/address/:id', verifyUserToken, deleteAddress);
+router.get('/user/address-list', verifyUserToken, getAllAddresses);
+router.get('/user/address-list/:id', verifyUserToken, getAddressById);
 
 
 module.exports = router;
