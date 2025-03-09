@@ -64,6 +64,11 @@ const Product = sequelize.define('products', {
     allowNull: true,
     defaultValue: 1,
   },
+  delivery_day : {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 1,
+  },
   description: {
     type: DataTypes.TEXT,
     allowNull: true,
