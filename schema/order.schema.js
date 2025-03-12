@@ -10,7 +10,7 @@ const Order = sequelize.define('orders', {
     currency: { type: DataTypes.STRING, allowNull: false, defaultValue: 'INR' }, // INR or USD
     status: { type: DataTypes.STRING, allowNull: false, defaultValue: 'Pending' },
     payment_id: { type: DataTypes.STRING, allowNull: true }, // Store payment gateway transaction ID
-    shipping_address: { type: DataTypes.JSON, allowNull: false }, // Store address as JSON
+    address_id: { type: DataTypes.NUMBER, allowNull: false }, // Store address as JSON
 }, {
     timestamps: true,
     paranoid: true,

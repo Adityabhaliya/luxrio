@@ -8,6 +8,7 @@ const cartoutes = require('./cart.routes');
 const wishoutes = require('./wish.routes'); 
 const addressoutes = require('./address.routes'); 
 const sizeroutes = require('./size.routes');
+const orderroutes = require('./order.routes');
 
 const router = express.Router();
 router.use('/', userRoutes);
@@ -18,6 +19,7 @@ router.use('/', cartoutes);
 router.use('/', wishoutes);
 router.use('/', addressoutes);
 router.use('/', sizeroutes);
+router.use('/', orderroutes);
 
 
 module.exports = router;
