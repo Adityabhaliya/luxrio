@@ -15,12 +15,20 @@ exports.createSize = async (req, res) => {
 
 exports.getAllSizes = async (req, res) => {
     try {
-        const sizes = await Size.findAll();
-        return res.status(200).json({ success: true, sizes });
+        const { page = 1, size = 10, s = '' } = req.query;
+
+        const whereCondition = {};
+        if (s) {
+            whereCondition.name = { [Op.like]: `%${s}%` };
+        }
+
+        const result = await paginate(Size, page, size, whereCondition);
+        return res.status(200).json({ success: true, ...result });
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
     }
 };
+
 
 exports.getSizeById = async (req, res) => {
     try {
