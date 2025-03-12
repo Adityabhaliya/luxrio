@@ -7,5 +7,6 @@ const cart = require('./cart.schema');
 const Wishlist = require('./wish.schema');
 const Setting = require('./setting.schema');
 const Address = require('./address.schema');
+const Size = require('./sizes.schema');
 
-module.exports = { User, Product, Otp,Address, category ,cart ,Wishlist ,Setting};
+module.exports = { User, Product, Otp,Address, category ,cart ,Wishlist ,Setting , Size};
