@@ -18,12 +18,17 @@ exports.getAllSizes = async (req, res) => {
         const { page = 1, size = 10, s = '' } = req.query;
 
         const whereCondition = {};
-        if (s) {
-            whereCondition.name = { [Op.like]: `%${s}%` };
-        }
+        
 
         const result = await paginate(Size, page, size, whereCondition);
-        return res.status(200).json({ success: true, ...result });
+
+        // Fetch category names for each size
+        const sizesWithCategory = await Promise.all(result.data.map(async (size) => {
+            const category = await Category.findOne({ where: { id: size.category_id } });
+            return { ...size.toJSON(), category_name: category ? category.name : null };
+        }));
+
+        return res.status(200).json({ success: true, data: sizesWithCategory, totalItems: result.totalItems, totalPages: result.totalPages });
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
     }
