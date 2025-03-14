@@ -5,8 +5,8 @@ const { createOrder, verifyOrder } = require('../controller/order.controller');
 
 const router = express.Router();
 
-router.post('/user/order-create', verifyAdminToken, createOrder);
-router.post('/user/order-verify', verifyAdminToken, verifyOrder);
+router.post('/user/order-create', verifyUserToken, createOrder);
+router.post('/user/order-verify', verifyUserToken, verifyOrder);
  
 
 
