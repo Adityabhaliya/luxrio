@@ -97,7 +97,7 @@ exports.loginUser = async (req, res) => {
 
             const token = generateToken(user.id, user.role);
             await User.update(
-                { last_login: new Date() }, 
+                { last_login: new Date() },
                 { where: { email } }
             );
             return res.status(200).json({ success: true, message: 'Login successful', token });
@@ -109,7 +109,7 @@ exports.loginUser = async (req, res) => {
                 return res.status(200).json({ success: false, message: 'User not found' });
             }
 
-            if(user.is_block === true){
+            if (user.is_block === true) {
                 return res.status(200).json({ success: false, message: 'Your account is block Please contact to Administrator.' });
 
             }
@@ -121,7 +121,7 @@ exports.loginUser = async (req, res) => {
 
             const token = generateToken(user.id, user.role);
             await User.update(
-                { last_login: new Date() }, 
+                { last_login: new Date() },
                 { where: { email } }
             );
             return res.status(200).json({ success: true, message: 'Login successful', token });
@@ -137,7 +137,7 @@ exports.forgetPassword = async (req, res) => {
         if (!email) {
             return res.status(400).json({ success: false, message: "Email is required" });
         }
- 
+
         const user = await User.findOne({ where: { email } });
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
@@ -153,7 +153,7 @@ exports.forgetPassword = async (req, res) => {
 
         await sendOtpEmail(email, resetToken);
 
-        return res.status(200).json({ success: true, message: 'Password reset email sent successfully' ,email });
+        return res.status(200).json({ success: true, message: 'Password reset email sent successfully', email });
     } catch (error) {
         console.error("Forget password error:", error);
         return res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -269,9 +269,20 @@ exports.adminUserDetails = async (req, res) => {
     }
 };
 
+exports.UserDetails = async (req, res) => {
+    try {
+        const user_id = req.user.id;
+        const whereCondition = { id: user_id, role: 2 };
+        const users = await User.findOne({ where: whereCondition });
+        return res.status(200).json({ success: true, data: { name: users.name, lastname: users.lastname, email: users.email } });
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 exports.adminUserBlock = async (req, res) => {
     try {
-        const { id, is_block } = req.body; 
+        const { id, is_block } = req.body;
 
         if (typeof is_block !== 'boolean') {
             return res.status(400).json({ success: false, message: "Invalid block status" });

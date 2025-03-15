@@ -80,17 +80,26 @@ exports.listOrders = async (req, res) => {
 exports.listOrdersAdmin = async (req, res) => {
     try {
         const { page = 1, size = 10, status = '' } = req.query;
-        const user_id = req.user.id;
 
-        const whereCondition = { };
+        const whereCondition = {};
         if (status) {
             whereCondition.status = { [Op.like]: `%${status}%` };
         }
 
         const result = await paginate(Order, page, size, whereCondition);
 
-        res.status(200).json({ success: true, ...result });
+        const ordersWithProducts = await Promise.all(result.data.map(async (order) => {
+            const productIds = JSON.parse(order.product_ids); // Parse the product_ids JSON string
+            const products = await Promise.all(productIds.map(async (productId) => {
+                return await Product.findOne({ where: { id: productId } });
+            }));
+
+            return { ...order.toJSON(), products };
+        }));
+
+        res.status(200).json({ success: true, data: ordersWithProducts, totalItems: result.totalItems, totalPages: result.totalPages });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 };
+
