@@ -7,8 +7,8 @@ const router = express.Router();
 
 router.post('/user/order-create', verifyUserToken, createOrder);
 router.post('/user/order-verify', verifyUserToken, verifyOrder);
-router.post('/user/order-list', verifyUserToken, listOrders);
-router.post('/admin/order-list', verifyAdminToken, listOrdersAdmin);
+router.get('/user/order-list', verifyUserToken, listOrders);
+router.get('/admin/order-list', verifyAdminToken, listOrdersAdmin);
  
 
 
