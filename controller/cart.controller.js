@@ -55,6 +55,7 @@ exports.listCart = async (req, res) => {
             international_sale_tax: settings?.international_sale_tax || 0,
             shipping_charge: settings?.shipping_charge || 0,
             international_shipping_charge: settings?.international_shipping_charge || 0,
+            stripe_key: settings?.stripe_key || null
         });
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
