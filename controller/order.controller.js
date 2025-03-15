@@ -61,11 +61,20 @@ exports.listOrders = async (req, res) => {
 
         const result = await paginate(Order, page, size, whereCondition);
 
-        res.status(200).json({ success: true, ...result });
+        const ordersWithProducts = await Promise.all(result.data.map(async (order) => {
+            const products = await Promise.all(order.product_ids.map(async (productId) => {
+                return await Product.findOne({ where: { id: productId } });
+            }));
+
+            return { ...order.toJSON(), products };
+        }));
+
+        res.status(200).json({ success: true, data: ordersWithProducts, totalItems: result.totalItems, totalPages: result.totalPages });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 };
+
 
 
 exports.listOrdersAdmin = async (req, res) => {
