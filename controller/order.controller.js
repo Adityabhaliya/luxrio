@@ -48,3 +48,40 @@ exports.verifyOrder = async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 };
+
+exports.listOrders = async (req, res) => {
+    try {
+        const { page = 1, size = 10, status = '' } = req.query;
+        const user_id = req.user.id;
+
+        const whereCondition = { user_id };
+        if (status) {
+            whereCondition.status = { [Op.like]: `%${status}%` };
+        }
+
+        const result = await paginate(Order, page, size, whereCondition);
+
+        res.status(200).json({ success: true, ...result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+
+exports.listOrdersAdmin = async (req, res) => {
+    try {
+        const { page = 1, size = 10, status = '' } = req.query;
+        const user_id = req.user.id;
+
+        const whereCondition = { };
+        if (status) {
+            whereCondition.status = { [Op.like]: `%${status}%` };
+        }
+
+        const result = await paginate(Order, page, size, whereCondition);
+
+        res.status(200).json({ success: true, ...result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
