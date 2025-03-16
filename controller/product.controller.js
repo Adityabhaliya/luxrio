@@ -7,12 +7,13 @@ const { Wishlist } = require('../schema');
 
 exports.createproduct = async (req, res) => {
   try {
-    const { name, category, images, gender, weight, is_new,delivery_day, price, size, international_price, quantity, description, prices, material } = req.body;
+    const { name, category, images, gender, weight, is_new,delivery_day, price, size, international_price, quantity, description, prices,silver_prices, material } = req.body;
 
     const slug = slugify(name, { lower: true });
 
     // Ensure prices and material are stored as JSON
-    const formattedPrices = prices && typeof prices === 'object' ? JSON.stringify(prices) : null;
+    const formattedPrices = prices && typeof prices === 'object' ? JSON.stringify(prices) : null; 
+    const formattedsilver_prices = silver_prices && typeof silver_prices === 'object' ? JSON.stringify(silver_prices) : null;
     const formattedMaterial = material && Array.isArray(material) ? JSON.stringify(material) : null;
     const formattedsize = size && Array.isArray(size) ? JSON.stringify(size) : null;
 
@@ -30,6 +31,7 @@ exports.createproduct = async (req, res) => {
       description,
       delivery_day,
       prices: formattedPrices, // Store JSON data properly
+      silver_prices: formattedsilver_prices, // Store JSON data properly
       material: formattedMaterial, // Store material as JSON
       size: formattedsize
     });
@@ -55,7 +57,13 @@ exports.createproduct = async (req, res) => {
 
         if (updateData.prices && typeof updateData.prices === 'object') {
           updateData.prices = JSON.stringify(updateData.prices);
-        }
+        }     
+        
+        if (updateData.silver_prices && typeof updateData.silver_prices === 'object') {
+          updateData.silver_prices = JSON.stringify(updateData.silver_prices);
+        } 
+        
+ 
         if (updateData.material && Array.isArray(updateData.material)) {
           updateData.material = JSON.stringify(updateData.material);
         }
