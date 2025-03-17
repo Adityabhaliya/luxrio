@@ -10,8 +10,13 @@ exports.createOrder = async (req, res) => {
     try {
         const { total_amount, currency, product_ids, address_id } = req.body;
 
+        // Check if amount is at least 50 INR
+        if (total_amount < 50 && currency === 'INR') {
+            return res.status(400).json({ success: false, error: "Amount must be at least 50 INR." });
+        }
+
         const paymentIntent = await stripe.paymentIntents.create({
-            amount: Math.round(total_amount * 100),
+            amount: Math.round(total_amount * 100), // Convert to paise for INR
             currency,
             payment_method_types: ['card'],
         });
@@ -30,6 +35,7 @@ exports.createOrder = async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 };
+
 
 // Verify Order API
 exports.verifyOrder = async (req, res) => {

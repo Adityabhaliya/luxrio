@@ -77,6 +77,10 @@ const Product = sequelize.define('products', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+  short_description: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
   is_block: { type: DataTypes.BOOLEAN },
   
  

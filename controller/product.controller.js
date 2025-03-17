@@ -7,7 +7,7 @@ const { Wishlist } = require('../schema');
 
 exports.createproduct = async (req, res) => {
   try {
-    const { name, category, images, gender, weight, is_new,delivery_day, price, size, international_price, quantity, description, prices,silver_prices, material } = req.body;
+    const { name, category, images, gender,short_description, weight, is_new,delivery_day, price, size, international_price, quantity, description, prices,silver_prices, material } = req.body;
 
     const slug = slugify(name, { lower: true });
 
@@ -30,6 +30,7 @@ exports.createproduct = async (req, res) => {
       quantity,
       description,
       delivery_day,
+      short_description,
       prices: formattedPrices, // Store JSON data properly
       silver_prices: formattedsilver_prices, // Store JSON data properly
       material: formattedMaterial, // Store material as JSON
