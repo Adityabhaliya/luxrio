@@ -11,6 +11,7 @@ const Address = sequelize.define('addresses', {
     city: { type: DataTypes.STRING, allowNull: false },
     state: { type: DataTypes.STRING, allowNull: false },
     zip: { type: DataTypes.STRING, allowNull: false },
+    countryCode: { type: DataTypes.STRING, allowNull: false },
 }, {
     timestamps: true,
     paranoid: true,

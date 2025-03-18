@@ -2,7 +2,7 @@ const Category = require('../schema/category.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op } = require('sequelize');
-const { Setting, Product } = require('../schema');
+const { Setting, Product, User, Address } = require('../schema');
 const Order = require('../schema/order.schema');
 const stripe = require('stripe')('sk_test_51R0hP8DPYqiRFj9aK46wcnApxCkAe8UMXSzPyVdIUfONAOI5pxAEJmkVU10y1665fXUuMcWBctdmGKj5lnINODhD005MwChyhy');
 
@@ -95,12 +95,18 @@ exports.listOrdersAdmin = async (req, res) => {
         const result = await paginate(Order, page, size, whereCondition);
 
         const ordersWithProducts = await Promise.all(result.data.map(async (order) => {
-            const productIds = JSON.parse(order.product_ids); // Parse the product_ids JSON string
+            const productIds = JSON.parse(order.product_ids);
             const products = await Promise.all(productIds.map(async (productId) => {
                 return await Product.findOne({ where: { id: productId } });
             }));
 
-            return { ...order.toJSON(), products };
+            const user = await User.findOne({ where: { id: order.user_id } });
+            const address = await Address.findOne({ where: { id: order.address_id } });
+
+            return {
+                ...order.toJSON(), products, user: user ? user.toJSON() : null,
+                address: address ? address.toJSON() : null
+            };
         }));
 
         res.status(200).json({ success: true, data: ordersWithProducts, totalItems: result.totalItems, totalPages: result.totalPages });
