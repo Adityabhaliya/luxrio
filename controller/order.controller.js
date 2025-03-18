@@ -4,6 +4,7 @@ const { paginate } = require('../utils/common');
 const { Op } = require('sequelize');
 const { Setting, Product, User, Address } = require('../schema');
 const Order = require('../schema/order.schema');
+const Cart = require('../schema/cart.schema');
 const stripe = require('stripe')('sk_test_51R0hP8DPYqiRFj9aK46wcnApxCkAe8UMXSzPyVdIUfONAOI5pxAEJmkVU10y1665fXUuMcWBctdmGKj5lnINODhD005MwChyhy');
 
 exports.createOrder = async (req, res) => {
@@ -46,6 +47,10 @@ exports.verifyOrder = async (req, res) => {
 
         if (paymentIntent.status === 'succeeded') {
             await Order.update({ status: 'Completed' }, { where: { id: orderId } });
+            const cartRecord = await Cart.findAll({ where: { user_id } });
+            if (cartRecord) {
+                await Cart.destroy({ where: { user_id } });
+            }
             res.status(200).json({ success: true, message: 'Payment successful and order verified.' });
         } else {
             res.status(400).json({ success: false, message: 'Payment not completed.' });
