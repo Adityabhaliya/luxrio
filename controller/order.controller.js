@@ -47,7 +47,8 @@ exports.verifyOrder = async (req, res) => {
 
         if (paymentIntent.status === 'succeeded') {
             await Order.update({ status: 'Completed' }, { where: { id: orderId } });
-            const cartRecord = await Cart.findAll({ where: { user_id } });
+            const cartRecord = await Cart.findAll({ where: { user_id : req.user.id,
+            } });
             if (cartRecord) {
                 await Cart.destroy({ where: { user_id } });
             }
