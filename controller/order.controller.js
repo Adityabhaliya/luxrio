@@ -2,14 +2,14 @@ const Category = require('../schema/category.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op } = require('sequelize');
-const { Setting, Product, User, Address } = require('../schema');
+const { Setting, Product, User, Address, order_details } = require('../schema');
 const Order = require('../schema/order.schema');
 const Cart = require('../schema/cart.schema');
 const stripe = require('stripe')('sk_test_51R0hP8DPYqiRFj9aK46wcnApxCkAe8UMXSzPyVdIUfONAOI5pxAEJmkVU10y1665fXUuMcWBctdmGKj5lnINODhD005MwChyhy');
 
 exports.createOrder = async (req, res) => {
     try {
-        const { total_amount, currency, product_ids, address_id } = req.body;
+        const { total_amount, currency, product_ids, product_details,address_id } = req.body;
 
         // Check if amount is at least 50 INR
         if (total_amount < 50 && currency === 'INR') {
@@ -24,12 +24,26 @@ exports.createOrder = async (req, res) => {
 
         const order = await Order.create({
             user_id: req.user.id,
-            product_ids,
+            product_ids: JSON.stringify(product_details.map(item => item.id)), // Store only product IDs as JSON
             total_amount,
             currency,
             address_id,
             payment_id: paymentIntent.id
         });
+
+        await Promise.all(product_details.map(async (product) => {
+            await order_details.create({
+                user_id: req.user.id,
+                order_id: order.id,
+                product_id: product.id,
+                quantity: product.quantity,
+                amount: product.amount,
+                size: product.size,
+                carat: product.carat,
+                weight: product.weight,
+                material_type: product.material_type
+            });
+        }));
 
         res.status(200).json({ success: true, clientSecret: paymentIntent.client_secret, order });
     } catch (error) {
@@ -121,3 +135,26 @@ exports.listOrdersAdmin = async (req, res) => {
     }
 };
 
+exports.editOrderStatus = async (req, res) => {
+    try {
+        const { id, order_status } = req.body;
+
+        if (!id || !order_status) {
+            return res.status(400).json({ success: false, error: "Order ID and order status are required." });
+        }
+
+        // Find the order by ID
+        const order = await Order.findOne({ where: { id } });
+
+        if (!order) {
+            return res.status(404).json({ success: false, error: "Order not found." });
+        }
+
+        // Update the order status
+        await Order.update({ status: order_status }, { where: { id } });
+
+        res.status(200).json({ success: true, message: "Order status updated successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
