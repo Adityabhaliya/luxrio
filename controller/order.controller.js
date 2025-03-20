@@ -161,7 +161,7 @@ exports.listOrdersAdmin = async (req, res) => {
         if (startDate && endDate) {
             whereCondition.createdAt = { [Op.between]: [new Date(startDate), new Date(endDate)] };
         }
-        
+
         const result = await paginate(Order, page, size, whereCondition);
 
         const ordersWithProducts = await Promise.all(result.data.map(async (order) => {
@@ -201,7 +201,7 @@ exports.listOrdersAdmin = async (req, res) => {
         }));
 
         const [pendingCount, inProcessCount, shippingCount, deliveredCount, 
-            canceledCount, paidCount, unpaidCount, failedCount] = await Promise.all([
+            canceledCount, paidCount, unpaidCount, failedCount ,all] = await Promise.all([
             Order.count({ where: { order_status: 'pending' } }),
             Order.count({ where: { order_status: 'in_process' } }),
             Order.count({ where: { order_status: 'shipping' } }),
@@ -209,7 +209,8 @@ exports.listOrdersAdmin = async (req, res) => {
             Order.count({ where: { order_status: 'canceled' } }),
             Order.count({ where: { status: 'completed' } }),
             Order.count({ where: { status: 'pending' } }),
-            Order.count({ where: { status: 'failed' } })
+            Order.count({ where: { status: 'failed' } }),
+            Order.count()
         ]);
 
         res.status(200).json({
@@ -225,7 +226,8 @@ exports.listOrdersAdmin = async (req, res) => {
                 canceled: canceledCount,
                 paid: paidCount,
                 unpaid: unpaidCount,
-                failed: failedCount
+                failed: failedCount,
+                all:all
             }
         });
     } catch (error) {
