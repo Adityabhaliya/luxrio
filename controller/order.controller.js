@@ -172,7 +172,9 @@ exports.listOrdersAdmin = async (req, res) => {
 
                 return { 
                     ...detail.toJSON(), 
-                    productName: product ? product.name : null // Include product name in the response
+                    productName: product ? product.name : null, // Include product name in the response
+                    productImage: product ? product.image : null
+
                 };
             }));
 
