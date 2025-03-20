@@ -67,7 +67,7 @@ exports.verifyOrder = async (req, res) => {
                 }
             });
             if (cartRecord) {
-                await Cart.destroy({ where: { user_id } });
+                await Cart.destroy({ where: { user_id :req.user.id} });
             }
             res.status(200).json({ success: true, message: 'Payment successful and order verified.' });
         } else {
