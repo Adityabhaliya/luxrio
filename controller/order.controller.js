@@ -91,7 +91,15 @@ exports.listOrders = async (req, res) => {
         const result = await paginate(Order, page, size, whereCondition);
 
         const ordersWithProducts = await Promise.all(result.data.map(async (order) => {
-            const productIds = JSON.parse(order.product_ids); // Parse the product_ids JSON string
+            let productIds = [];
+
+            // Parse product_ids if it's a string
+            if (typeof order.product_ids === 'string') {
+                productIds = JSON.parse(order.product_ids);
+            } else {
+                productIds = order.product_ids; // Already an array
+            }
+
             const products = await Promise.all(productIds.map(async (productId) => {
                 return await Product.findOne({ where: { id: productId } });
             }));
@@ -104,6 +112,7 @@ exports.listOrders = async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 };
+
 
 
 exports.listOrdersAdmin = async (req, res) => {
