@@ -90,28 +90,53 @@ exports.listOrders = async (req, res) => {
 
         const result = await paginate(Order, page, size, whereCondition);
 
-        const ordersWithProducts = await Promise.all(result.data.map(async (order) => {
+        const ordersWithDetails = await Promise.all(result.data.map(async (order) => {
             let productIds = [];
 
             // Parse product_ids if it's a string
             if (typeof order.product_ids === 'string') {
                 productIds = JSON.parse(order.product_ids);
             } else {
-                productIds = order.product_ids; // Already an array
+                productIds = order.product_ids;
             }
 
             const products = await Promise.all(productIds.map(async (productId) => {
                 return await Product.findOne({ where: { id: productId } });
             }));
 
-            return { ...order.toJSON(), products };
+            // Fetch related order details from the order_details table
+            const orderDetails = await order_details.findAll({
+                where: { order_id: order.id }
+            });
+
+            // Fetch product names for each order_detail entry
+            const orderDetailsWithProductNames = await Promise.all(orderDetails.map(async (detail) => {
+                const product = await Product.findOne({ where: { id: detail.product_id } });
+
+                return { 
+                    ...detail.toJSON(), 
+                    productName: product ? product.name : null // Include product name in the response
+                };
+            }));
+
+            return { 
+                ...order.toJSON(), 
+                products, 
+                orderDetails: orderDetailsWithProductNames 
+            };
         }));
 
-        res.status(200).json({ success: true, data: ordersWithProducts, totalItems: result.totalItems, totalPages: result.totalPages });
+        res.status(200).json({ 
+            success: true, 
+            data: ordersWithDetails, 
+            totalItems: result.totalItems, 
+            totalPages: result.totalPages 
+        });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 };
+
 
 
 
