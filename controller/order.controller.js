@@ -143,8 +143,8 @@ exports.listOrders = async (req, res) => {
 
 exports.listOrdersAdmin = async (req, res) => {
     try {
-        const { page = 1, size = 10, status = '' } = req.query;
-
+        const { page = 1, size = 10, status = '' ,startDate, endDate} = req.query;
+ 
         const whereCondition = {};
         if (status) {
             const normalizedStatus = status.toLowerCase();
@@ -157,7 +157,11 @@ exports.listOrdersAdmin = async (req, res) => {
                 whereCondition.order_status = { [Op.like]: `%${status}%` };
             }
         }
-
+        
+        if (startDate && endDate) {
+            whereCondition.createdAt = { [Op.between]: [new Date(startDate), new Date(endDate)] };
+        }
+        
         const result = await paginate(Order, page, size, whereCondition);
 
         const ordersWithProducts = await Promise.all(result.data.map(async (order) => {
@@ -185,6 +189,8 @@ exports.listOrdersAdmin = async (req, res) => {
                 };
             }));
 
+            
+
             return {
                 ...order.toJSON(),
                 products,
@@ -194,11 +200,33 @@ exports.listOrdersAdmin = async (req, res) => {
             };
         }));
 
+        const [pendingCount, inProcessCount, shippingCount, deliveredCount, 
+            canceledCount, paidCount, unpaidCount, failedCount] = await Promise.all([
+            Order.count({ where: { order_status: 'pending' } }),
+            Order.count({ where: { order_status: 'in_process' } }),
+            Order.count({ where: { order_status: 'shipping' } }),
+            Order.count({ where: { order_status: 'delivered' } }),
+            Order.count({ where: { order_status: 'canceled' } }),
+            Order.count({ where: { status: 'completed' } }),
+            Order.count({ where: { status: 'pending' } }),
+            Order.count({ where: { status: 'failed' } })
+        ]);
+
         res.status(200).json({
             success: true,
             data: ordersWithProducts,
             totalItems: result.totalItems,
-            totalPages: result.totalPages
+            totalPages: result.totalPages,
+            statusCounts: {
+                pending: pendingCount,
+                in_process: inProcessCount,
+                shipping: shippingCount,
+                delivered: deliveredCount,
+                canceled: canceledCount,
+                paid: paidCount,
+                unpaid: unpaidCount,
+                failed: failedCount
+            }
         });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
