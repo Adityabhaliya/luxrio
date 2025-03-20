@@ -153,6 +153,7 @@ exports.listOrdersAdmin = async (req, res) => {
 
         const ordersWithProducts = await Promise.all(result.data.map(async (order) => {
             const productIds = JSON.parse(order.product_ids);
+
             const products = await Promise.all(productIds.map(async (productId) => {
                 return await Product.findOne({ where: { id: productId } });
             }));
@@ -160,77 +161,46 @@ exports.listOrdersAdmin = async (req, res) => {
             const user = await User.findOne({ where: { id: order.user_id } });
             const address = await Address.findOne({ where: { id: order.address_id } });
 
+            // Fetch related order details from the order_details table
+            const orderDetails = await order_details.findAll({
+                where: { order_id: order.id }
+            });
+
+            // Fetch product names for each order_detail entry
+            const orderDetailsWithProductNames = await Promise.all(orderDetails.map(async (detail) => {
+                const product = await Product.findOne({ where: { id: detail.product_id } });
+
+                return { 
+                    ...detail.toJSON(), 
+                    productName: product ? product.name : null // Include product name in the response
+                };
+            }));
+
             return {
-                ...order.toJSON(), products, user: user ? user.toJSON() : null,
+                ...order.toJSON(),
+                products,
+                orderDetails: orderDetailsWithProductNames,
+                user: user ? user.toJSON() : null,
                 address: address ? address.toJSON() : null
             };
         }));
 
-        res.status(200).json({ success: true, data: ordersWithProducts, totalItems: result.totalItems, totalPages: result.totalPages });
+        res.status(200).json({ 
+            success: true, 
+            data: ordersWithProducts, 
+            totalItems: result.totalItems, 
+            totalPages: result.totalPages 
+        });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 };
 
+
 exports.editOrderStatus = async (req, res) => {
     try {
         const { id, order_status } = req.body;
-        exports.listOrdersAdmin = async (req, res) => {
-            try {
-                const { page = 1, size = 10, status = '' } = req.query;
-        
-                const whereCondition = {};
-                if (status) {
-                    whereCondition.status = { [Op.like]: `%${status}%` };
-                }
-        
-                const result = await paginate(Order, page, size, whereCondition);
-        
-                const ordersWithProducts = await Promise.all(result.data.map(async (order) => {
-                    const productIds = JSON.parse(order.product_ids);
-        
-                    const products = await Promise.all(productIds.map(async (productId) => {
-                        return await Product.findOne({ where: { id: productId } });
-                    }));
-        
-                    const user = await User.findOne({ where: { id: order.user_id } });
-                    const address = await Address.findOne({ where: { id: order.address_id } });
-        
-                    // Fetch related order details from the order_details table
-                    const orderDetails = await order_details.findAll({
-                        where: { order_id: order.id }
-                    });
-        
-                    // Fetch product names for each order_detail entry
-                    const orderDetailsWithProductNames = await Promise.all(orderDetails.map(async (detail) => {
-                        const product = await Product.findOne({ where: { id: detail.product_id } });
-        
-                        return { 
-                            ...detail.toJSON(), 
-                            productName: product ? product.name : null // Include product name in the response
-                        };
-                    }));
-        
-                    return {
-                        ...order.toJSON(),
-                        products,
-                        orderDetails: orderDetailsWithProductNames,
-                        user: user ? user.toJSON() : null,
-                        address: address ? address.toJSON() : null
-                    };
-                }));
-        
-                res.status(200).json({ 
-                    success: true, 
-                    data: ordersWithProducts, 
-                    totalItems: result.totalItems, 
-                    totalPages: result.totalPages 
-                });
-            } catch (error) {
-                res.status(500).json({ success: false, error: error.message });
-            }
-        };
-        
+
         if (!id || !order_status) {
             return res.status(400).json({ success: false, error: "Order ID and order status are required." });
         }
