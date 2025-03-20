@@ -9,7 +9,7 @@ const stripe = require('stripe')('sk_test_51R0hP8DPYqiRFj9aK46wcnApxCkAe8UMXSzPy
 
 exports.createOrder = async (req, res) => {
     try {
-        const { total_amount, currency, product_ids, product_details,address_id } = req.body;
+        const { total_amount, currency, product_ids, product_details, address_id } = req.body;
 
         // Check if amount is at least 50 INR
         if (total_amount < 50 && currency === 'INR') {
@@ -61,8 +61,11 @@ exports.verifyOrder = async (req, res) => {
 
         if (paymentIntent.status === 'succeeded') {
             await Order.update({ status: 'Completed' }, { where: { id: orderId } });
-            const cartRecord = await Cart.findAll({ where: { user_id : req.user.id,
-            } });
+            const cartRecord = await Cart.findAll({
+                where: {
+                    user_id: req.user.id,
+                }
+            });
             if (cartRecord) {
                 await Cart.destroy({ where: { user_id } });
             }
