@@ -252,7 +252,7 @@ exports.editOrderStatus = async (req, res) => {
         }
 
         // Update the order status
-        await Order.update({ status: order_status }, { where: { id } });
+        await Order.update({ order_status: order_status }, { where: { id } });
 
         res.status(200).json({ success: true, message: "Order status updated successfully." });
     } catch (error) {
