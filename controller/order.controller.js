@@ -236,26 +236,135 @@ exports.listOrdersAdmin = async (req, res) => {
 };
 
 
+/*
+exports.listOrdersAdmin = async (req, res) => {
+    try {
+        const { page = 1, size = 10, status = '', startDate, endDate, search = '' } = req.query;
+
+        const whereCondition = {};
+        
+        // Handle status filtering
+        if (status) {
+            const normalizedStatus = status.toLowerCase();
+            if (['paid', 'unpaid', 'failed'].includes(normalizedStatus)) {
+                if (normalizedStatus === 'paid') whereCondition.status = 'completed';
+                if (normalizedStatus === 'unpaid') whereCondition.status = 'pending';
+                if (normalizedStatus === 'failed') whereCondition.status = 'failed';
+            } else {
+                whereCondition.order_status = { [Op.like]: `%${status}%` };
+            }
+        }
+
+        // Handle date filtering
+        if (startDate && endDate) {
+            whereCondition.createdAt = { [Op.between]: [new Date(startDate), new Date(endDate)] };
+        }
+
+        const result = await paginate(Order, page, size, whereCondition);
+
+        const ordersWithProducts = await Promise.all(result.data.map(async (order) => {
+            const productIds = JSON.parse(order.product_ids);
+
+            const products = await Promise.all(productIds.map(async (productId) => {
+                return await Product.findOne({ where: { id: productId } });
+            }));
+
+            const user = await User.findOne({ where: { id: order.user_id } });
+            const address = await Address.findOne({ where: { id: order.address_id } });
+
+            const orderDetails = await order_details.findAll({
+                where: { order_id: order.id }
+            });
+
+            const orderDetailsWithProductNames = await Promise.all(orderDetails.map(async (detail) => {
+                const product = await Product.findOne({ where: { id: detail.product_id } });
+
+                return {
+                    ...detail.toJSON(),
+                    productName: product ? product.name : null,
+                    productImage: product ? product.images : null
+                };
+            }));
+
+            return {
+                ...order.toJSON(),
+                products,
+                orderDetails: orderDetailsWithProductNames,
+                user: user ? user.toJSON() : null,
+                address: address ? address.toJSON() : null
+            };
+        }));
+
+        // 🔍 Apply search filter if 'search' query is provided
+        let filteredOrders = ordersWithProducts;
+        if (search) {
+            filteredOrders = ordersWithProducts.filter(order => 
+                JSON.stringify(order).toLowerCase().includes(search.toLowerCase())
+            );
+        }
+
+        // Count all statuses
+        const [pendingCount, inProcessCount, shippingCount, deliveredCount, 
+            canceledCount, paidCount, unpaidCount, failedCount ,all] = await Promise.all([
+            Order.count({ where: { order_status: 'pending' } }),
+            Order.count({ where: { order_status: 'in_process' } }),
+            Order.count({ where: { order_status: 'shipping' } }),
+            Order.count({ where: { order_status: 'delivered' } }),
+            Order.count({ where: { order_status: 'canceled' } }),
+            Order.count({ where: { status: 'completed' } }),
+            Order.count({ where: { status: 'pending' } }),
+            Order.count({ where: { status: 'failed' } }),
+            Order.count()
+        ]);
+
+        res.status(200).json({
+            success: true,
+            data: filteredOrders,
+            totalItems: filteredOrders.length,
+            totalPages: Math.ceil(filteredOrders.length / size),
+            statusCounts: {
+                pending: pendingCount,
+                in_process: inProcessCount,
+                shipping: shippingCount,
+                delivered: deliveredCount,
+                canceled: canceledCount,
+                paid: paidCount,
+                unpaid: unpaidCount,
+                failed: failedCount,
+                all: all
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+*/
+
 exports.editOrderStatus = async (req, res) => {
     try {
         const { id, order_status } = req.body;
 
         if (!id || !order_status) {
-            return res.status(400).json({ success: false, error: "Order ID and order status are required." });
+            return res.status(400).json({ success: false, error: "Order ID(s) and order status are required." });
         }
 
-        // Find the order by ID
-        const order = await Order.findOne({ where: { id } });
+        // Check if id is an array or a single value
+        const whereCondition = Array.isArray(id) ? { id: { [Op.in]: id } } : { id };
 
-        if (!order) {
-            return res.status(404).json({ success: false, error: "Order not found." });
+        // Find orders by IDs
+        const orders = await Order.findAll({ where: whereCondition });
+
+        if (orders.length === 0) {
+            return res.status(404).json({ success: false, error: "No orders found with the provided ID(s)." });
         }
 
-        // Update the order status
-        await Order.update({ order_status: order_status }, { where: { id } });
+        // Update the order status for all matching orders
+        await Order.update({ order_status: order_status }, { where: whereCondition });
 
         res.status(200).json({ success: true, message: "Order status updated successfully." });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 };
+
