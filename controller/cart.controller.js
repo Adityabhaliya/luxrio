@@ -3,7 +3,7 @@ const Product = require('../schema/product.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op } = require('sequelize');
-const { Setting } = require('../schema');
+const { Setting, AboutUs } = require('../schema');
 
 exports.addToCart = async (req, res) => {
     try {
@@ -77,3 +77,107 @@ exports.deleteCartItem = async (req, res) => {
     }
 };
 
+
+exports.getPrivacyPolicy = async (req, res) => {
+    try {
+        const setting = await Setting.findOne();
+        if (!setting) return res.status(404).json({ success: false, error: "Privacy Policy not found." });
+
+        return res.status(200).json({ success: true, privacy_policy: setting.privacy_policy });
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+// Update Privacy Policy
+exports.updatePrivacyPolicy = async (req, res) => {
+    try {
+        const { privacy_policy } = req.body;
+
+        if (!privacy_policy) {
+            return res.status(400).json({ success: false, error: "Privacy Policy is required." });
+        }
+
+        const setting = await Setting.findOne();
+        
+        if (setting) {
+            await Setting.update({ privacy_policy }, { where: { id: setting.id } });
+            return res.status(200).json({ success: true, message: "Privacy Policy updated successfully." });
+        } else {
+            await Setting.create({ privacy_policy });
+            return res.status(201).json({ success: true, message: "Privacy Policy created successfully." });
+        }
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+// Get Terms & Conditions
+exports.getTermCondition = async (req, res) => {
+    try {
+        const setting = await Setting.findOne();
+        if (!setting) return res.status(404).json({ success: false, error: "Terms & Conditions not found." });
+
+        return res.status(200).json({ success: true, term_condition: setting.term_condition });
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+// Update Terms & Conditions
+exports.updateTermCondition = async (req, res) => {
+    try {
+        const { term_condition } = req.body;
+
+        if (!term_condition) {
+            return res.status(400).json({ success: false, error: "Terms & Conditions are required." });
+        }
+
+        const setting = await Setting.findOne();
+        
+        if (setting) {
+            await Setting.update({ term_condition }, { where: { id: setting.id } });
+            return res.status(200).json({ success: true, message: "Terms & Conditions updated successfully." });
+        } else {
+            await Setting.create({ term_condition });
+            return res.status(201).json({ success: true, message: "Terms & Conditions created successfully." });
+        }
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+
+exports.getAboutUs = async (req, res) => {
+    try {
+        const aboutUs = await AboutUs.findOne();
+        if (!aboutUs) {
+            return res.status(404).json({ success: false, error: "About Us data not found." });
+        }
+        
+        res.status(200).json({ success: true, data: aboutUs });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+// Create or Update About Us
+exports.createOrUpdateAboutUs = async (req, res) => {
+    try {
+        const { description, mobileno, right_image, left_image } = req.body;
+
+        const existingAboutUs = await AboutUs.findOne();
+
+        if (existingAboutUs) {
+            // Update Existing Record
+            await AboutUs.update({ description, mobileno, right_image, left_image }, { where: { id: existingAboutUs.id } });
+            return res.status(200).json({ success: true, message: "About Us updated successfully." });
+        } else {
+            // Create New Record
+            await AboutUs.create({ description, mobileno, right_image, left_image });
+            return res.status(201).json({ success: true, message: "About Us created successfully." });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};

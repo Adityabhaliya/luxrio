@@ -7,12 +7,12 @@ const { Wishlist } = require('../schema');
 
 exports.createproduct = async (req, res) => {
   try {
-    const { name, category, images, gender,short_description, weight, is_new,delivery_day, price, size, international_price, quantity, description, prices,silver_prices, material } = req.body;
+    const { name, category, images, big_images, gender, short_description, weight, is_new, delivery_day, price, size, international_price, quantity, description, prices, silver_prices, material } = req.body;
 
     const slug = slugify(name, { lower: true });
 
     // Ensure prices and material are stored as JSON
-    const formattedPrices = prices && typeof prices === 'object' ? JSON.stringify(prices) : null; 
+    const formattedPrices = prices && typeof prices === 'object' ? JSON.stringify(prices) : null;
     const formattedsilver_prices = silver_prices && typeof silver_prices === 'object' ? JSON.stringify(silver_prices) : null;
     const formattedMaterial = material && Array.isArray(material) ? JSON.stringify(material) : null;
     const formattedsize = size && Array.isArray(size) ? JSON.stringify(size) : null;
@@ -22,6 +22,7 @@ exports.createproduct = async (req, res) => {
       slug,
       category,
       images,
+      big_images,
       weight,
       gender,
       is_new,
@@ -43,55 +44,55 @@ exports.createproduct = async (req, res) => {
   }
 };
 
- 
 
- 
 
-    exports.editproduct = async (req, res) => {
-      try {
-        const { slug } = req.params;
-        let updateData = req.body;
 
-        if (updateData.name) {
-          updateData.slug = slugify(updateData.name, { lower: true });
-        }
 
-        if (updateData.prices && typeof updateData.prices === 'object') {
-          updateData.prices = JSON.stringify(updateData.prices);
-        }     
-        
-        if (updateData.silver_prices && typeof updateData.silver_prices === 'object') {
-          updateData.silver_prices = JSON.stringify(updateData.silver_prices);
-        } 
-        
- 
-        if (updateData.material && Array.isArray(updateData.material)) {
-          updateData.material = JSON.stringify(updateData.material);
-        }
-        if (updateData.size && Array.isArray(updateData.size)) {
-          updateData.size = JSON.stringify(updateData.size);
-        }
+exports.editproduct = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    let updateData = req.body;
 
-        if (updateData.is_sell === true) {
-          const activeSellCount = await Product.count({ where: { is_sell: true } });
-          if (activeSellCount >= 4) {
-            return res.status(400).json({ success: false, message: 'Only a maximum of 4 products can have is_sell set to true.' });
-          }
-        }
+    if (updateData.name) {
+      updateData.slug = slugify(updateData.name, { lower: true });
+    }
 
-        const updatedProduct = await Product.update(updateData, { where: { slug } });
+    if (updateData.prices && typeof updateData.prices === 'object') {
+      updateData.prices = JSON.stringify(updateData.prices);
+    }
 
-        if (!updatedProduct[0]) {
-          return res.status(404).json({ success: false, message: 'Product not found' });
-        }
+    if (updateData.silver_prices && typeof updateData.silver_prices === 'object') {
+      updateData.silver_prices = JSON.stringify(updateData.silver_prices);
+    }
 
-        return res.status(200).json({ success: true, message: 'Product updated successfully' });
-      } catch (error) {
-        return res.status(500).json({ success: false, error: error.message });
+
+    if (updateData.material && Array.isArray(updateData.material)) {
+      updateData.material = JSON.stringify(updateData.material);
+    }
+    if (updateData.size && Array.isArray(updateData.size)) {
+      updateData.size = JSON.stringify(updateData.size);
+    }
+
+    if (updateData.is_sell === true) {
+      const activeSellCount = await Product.count({ where: { is_sell: true } });
+      if (activeSellCount >= 4) {
+        return res.status(400).json({ success: false, message: 'Only a maximum of 4 products can have is_sell set to true.' });
       }
-    };
+    }
 
-  
+    const updatedProduct = await Product.update(updateData, { where: { slug } });
+
+    if (!updatedProduct[0]) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    return res.status(200).json({ success: true, message: 'Product updated successfully' });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+
 
 exports.deleteproduct = async (req, res) => {
   try {
@@ -132,6 +133,38 @@ exports.listProductsPagination = async (req, res) => {
   }
 };
 
+exports.biglistProductsPagination = async (req, res) => {
+  try {
+
+    const products = await Product.findAll({
+      where: {
+        deletedAt: null,
+        big_images: { [Op.ne]: null }  
+      }
+    });
+
+    return res.status(200).json({ success: true, ...products });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+exports.alllistProductsPagination = async (req, res) => {
+  try {
+
+    const products = await Product.findAll({
+      where: {
+        deletedAt: null,
+       }
+    });
+
+    return res.status(200).json({ success: true, ...products });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+
 
 exports.listProductsPaginationUser = async (req, res) => {
   try {
@@ -161,8 +194,8 @@ exports.listSellProductsPaginationUser = async (req, res) => {
 
     if (s) {
       whereCondition[Op.or] = [
-        { name: { [Op.like]: `%${s}%` } }, // Search by name
-        { category: { [Op.like]: `%${s}%` } } // Search by category
+        { name: { [Op.like]: `%${s}%` } },
+        { category: { [Op.like]: `%${s}%` } }
       ];
     }
 
@@ -179,7 +212,7 @@ exports.listSellProductsPaginationUser = async (req, res) => {
 exports.listProductsPaginationUserBYSlug = async (req, res) => {
   try {
     const { slug } = req.params;
-    const user_id  = req.user.id; // Assuming user_id is passed as a query parameter
+    const user_id = req.user.id; // Assuming user_id is passed as a query parameter
 
     const whereCondition = { deletedAt: null, is_block: false, slug };
 

@@ -27,6 +27,10 @@ const Product = sequelize.define('products', {
     type: DataTypes.JSON, 
     allowNull: true,
   },
+  big_images: {
+    type: DataTypes.JSON, 
+    allowNull: true,
+  },
   is_new: {
     type: DataTypes.BOOLEAN,
     defaultValue: true,

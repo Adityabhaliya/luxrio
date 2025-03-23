@@ -11,6 +11,7 @@ const Order = sequelize.define('orders', {
     status: { type: DataTypes.STRING, allowNull: false, defaultValue: 'pending' },
     order_status: { type: DataTypes.STRING, allowNull: false, defaultValue: 'Pending' },
     payment_id: { type: DataTypes.STRING, allowNull: true }, // Store payment gateway transaction ID
+    order_id: { type: DataTypes.STRING, allowNull: true }, // Store payment gateway transaction ID
     address_id: { type: DataTypes.NUMBER, allowNull: false }, // Store address as JSON
 }, {
     timestamps: true,

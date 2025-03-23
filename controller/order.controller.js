@@ -31,6 +31,11 @@ exports.createOrder = async (req, res) => {
             payment_id: paymentIntent.id
         });
 
+        const generatedOrderId = `order_${order.id}`;
+
+        // Update the order with the generated order_id
+        await Order.update({ order_id: generatedOrderId }, { where: { id: order.id } });
+
         await Promise.all(product_details.map(async (product) => {
             await order_details.create({
                 user_id: req.user.id,
@@ -141,10 +146,105 @@ exports.listOrders = async (req, res) => {
 
 
 
+// exports.listOrdersAdmin = async (req, res) => {
+//     try {
+//         const { page = 1, size = 10, status = '',search ,startDate, endDate} = req.query;
+
+//         const whereCondition = {};
+//         if (status) {
+//             const normalizedStatus = status.toLowerCase();
+
+//             if (['paid', 'unpaid', 'failed'].includes(normalizedStatus)) {
+//                 if (normalizedStatus === 'paid') whereCondition.status = 'completed';
+//                 if (normalizedStatus === 'unpaid') whereCondition.status = 'pending';
+//                 if (normalizedStatus === 'failed') whereCondition.status = 'failed';
+//             } else {
+//                 whereCondition.order_status = { [Op.like]: `%${status}%` };
+//             }
+//         }
+
+//         if (startDate && endDate) {
+//             whereCondition.createdAt = { [Op.between]: [new Date(startDate), new Date(endDate)] };
+//         }
+
+//         const result = await paginate(Order, page, size, whereCondition);
+
+//         const ordersWithProducts = await Promise.all(result.data.map(async (order) => {
+//             const productIds = JSON.parse(order.product_ids);
+
+//             const products = await Promise.all(productIds.map(async (productId) => {
+//                 return await Product.findOne({ where: { id: productId } });
+//             }));
+
+//             const user = await User.findOne({ where: { id: order.user_id } });
+//             const address = await Address.findOne({ where: { id: order.address_id } });
+
+//             const orderDetails = await order_details.findAll({
+//                 where: { order_id: order.id }
+//             });
+
+//             const orderDetailsWithProductNames = await Promise.all(orderDetails.map(async (detail) => {
+//                 const product = await Product.findOne({ where: { id: detail.product_id } });
+
+//                 return {
+//                     ...detail.toJSON(),
+//                     productName: product ? product.name : null, // Include product name in the response
+//                     productImage: product ? product.images : null
+
+//                 };
+//             }));
+
+
+
+//             return {
+//                 ...order.toJSON(),
+//                 products,
+//                 orderDetails: orderDetailsWithProductNames,
+//                 user: user ? user.toJSON() : null,
+//                 address: address ? address.toJSON() : null
+//             };
+//         }));
+
+//         const [pendingCount, inProcessCount, shippingCount, deliveredCount, 
+//             canceledCount, paidCount, unpaidCount, failedCount ,all] = await Promise.all([
+//             Order.count({ where: { order_status: 'pending' } }),
+//             Order.count({ where: { order_status: 'in_process' } }),
+//             Order.count({ where: { order_status: 'shipping' } }),
+//             Order.count({ where: { order_status: 'delivered' } }),
+//             Order.count({ where: { order_status: 'canceled' } }),
+//             Order.count({ where: { status: 'completed' } }),
+//             Order.count({ where: { status: 'pending' } }),
+//             Order.count({ where: { status: 'failed' } }),
+//             Order.count()
+//         ]);
+
+//         res.status(200).json({
+//             success: true,
+//             data: ordersWithProducts,
+//             totalItems: result.totalItems,
+//             totalPages: result.totalPages,
+//             statusCounts: {
+//                 pending: pendingCount,
+//                 in_process: inProcessCount,
+//                 shipping: shippingCount,
+//                 delivered: deliveredCount,
+//                 canceled: canceledCount,
+//                 paid: paidCount,
+//                 unpaid: unpaidCount,
+//                 failed: failedCount,
+//                 all:all
+//             }
+//         });
+//     } catch (error) {
+//         res.status(500).json({ success: false, error: error.message });
+//     }
+// };
+
+
 exports.listOrdersAdmin = async (req, res) => {
     try {
-        const { page = 1, size = 10, status = '' ,startDate, endDate} = req.query;
- 
+        const { page = 1, size = 10, status = '', search = '', startDate, endDate } = req.query;
+
         const whereCondition = {};
         if (status) {
             const normalizedStatus = status.toLowerCase();
@@ -157,7 +257,7 @@ exports.listOrdersAdmin = async (req, res) => {
                 whereCondition.order_status = { [Op.like]: `%${status}%` };
             }
         }
-        
+
         if (startDate && endDate) {
             whereCondition.createdAt = { [Op.between]: [new Date(startDate), new Date(endDate)] };
         }
@@ -183,41 +283,46 @@ exports.listOrdersAdmin = async (req, res) => {
 
                 return {
                     ...detail.toJSON(),
-                    productName: product ? product.name : null, // Include product name in the response
+                    productName: product ? product.name : null,
                     productImage: product ? product.images : null
-
                 };
             }));
 
-            
-
-            return {
+            const fullOrderData = {
                 ...order.toJSON(),
                 products,
                 orderDetails: orderDetailsWithProductNames,
                 user: user ? user.toJSON() : null,
                 address: address ? address.toJSON() : null
             };
+
+            return fullOrderData;
         }));
 
-        const [pendingCount, inProcessCount, shippingCount, deliveredCount, 
-            canceledCount, paidCount, unpaidCount, failedCount ,all] = await Promise.all([
-            Order.count({ where: { order_status: 'pending' } }),
-            Order.count({ where: { order_status: 'in_process' } }),
-            Order.count({ where: { order_status: 'shipping' } }),
-            Order.count({ where: { order_status: 'delivered' } }),
-            Order.count({ where: { order_status: 'canceled' } }),
-            Order.count({ where: { status: 'completed' } }),
-            Order.count({ where: { status: 'pending' } }),
-            Order.count({ where: { status: 'failed' } }),
-            Order.count()
-        ]);
+        // Filter results by search term if provided
+        const filteredOrders = search ? ordersWithProducts.filter(order => {
+            const orderString = JSON.stringify(order).toLowerCase();
+            return orderString.includes(search.toLowerCase());
+        }) : ordersWithProducts;
+
+        const [pendingCount, inProcessCount, shippingCount, deliveredCount,
+            canceledCount, paidCount, unpaidCount, failedCount, all] = await Promise.all([
+                Order.count({ where: { order_status: 'pending' } }),
+                Order.count({ where: { order_status: 'in_process' } }),
+                Order.count({ where: { order_status: 'shipping' } }),
+                Order.count({ where: { order_status: 'delivered' } }),
+                Order.count({ where: { order_status: 'canceled' } }),
+                Order.count({ where: { status: 'completed' } }),
+                Order.count({ where: { status: 'pending' } }),
+                Order.count({ where: { status: 'failed' } }),
+                Order.count()
+            ]);
 
         res.status(200).json({
             success: true,
-            data: ordersWithProducts,
-            totalItems: result.totalItems,
-            totalPages: result.totalPages,
+            data: filteredOrders,
+            totalItems: filteredOrders.length,
+            totalPages: Math.ceil(filteredOrders.length / size),
             statusCounts: {
                 pending: pendingCount,
                 in_process: inProcessCount,
@@ -227,7 +332,7 @@ exports.listOrdersAdmin = async (req, res) => {
                 paid: paidCount,
                 unpaid: unpaidCount,
                 failed: failedCount,
-                all:all
+                all: all
             }
         });
     } catch (error) {

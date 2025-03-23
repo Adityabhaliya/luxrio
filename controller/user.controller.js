@@ -1,4 +1,4 @@
-const { User, Otp } = require('../schema');
+const { User, Otp, Subscriber } = require('../schema');
 const { generateToken } = require('../tokenizer/token');
 const bcrypt = require('bcrypt');
 const { sendOtpEmail, paginate } = require('../utils/common');
@@ -296,6 +296,29 @@ exports.adminUserBlock = async (req, res) => {
         await User.update({ is_block }, { where: { id } });
 
         return res.status(200).json({ success: true, message: `User ${is_block ? 'blocked' : 'unblocked'} successfully` });
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+
+exports.addSubscriber = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ success: false, error: "Email is required." });
+        }
+
+        const isEmail = await Subscriber.findOne({ where: { email: email } })
+        if (isEmail) {
+            return res.status(201).json({ success: true, message: "Subscriber added successfully." });
+
+        }
+
+        const subscriber = await Subscriber.create({ email });
+        return res.status(201).json({ success: true, message: "Subscriber added successfully." });
+
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
     }

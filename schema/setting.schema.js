@@ -7,6 +7,8 @@ const Setting = sequelize.define('settings', {
     shipping_charge: { type: DataTypes.FLOAT, allowNull: true },
     international_shipping_charge: { type: DataTypes.FLOAT, allowNull: true },
     stripe_key: { type: DataTypes.STRING, allowNull: true },
+    privacy_policy: { type: DataTypes.STRING, allowNull: true },
+    term_condition: { type: DataTypes.STRING, allowNull: true },
     stripe_secret_key: { type: DataTypes.STRING, allowNull: true },
 }, {
     timestamps: true,
