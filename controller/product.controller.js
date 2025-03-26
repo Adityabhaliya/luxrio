@@ -2,7 +2,7 @@ const Product = require('../schema/product.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op } = require('sequelize');
-const { Wishlist, IPAddress } = require('../schema');
+const { Wishlist, IPAddress, category } = require('../schema');
 
 const axios = require('axios');
 
@@ -424,7 +424,7 @@ exports.listSellProductsPaginationUser = async (req, res) => {
     }
     const products = await Product.findAll({ where: whereCondition });
     const productIds = products.map(product => product.category).filter(Boolean); // Get unique category IDs
-    const categories = await Category.findAll({ where: { id: productIds } });
+    const categories = await category.findAll({ where: { id: productIds } });
 
     // Create a mapping of category ID to name
     const categoryMap = {};
