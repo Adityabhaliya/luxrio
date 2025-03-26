@@ -2,7 +2,7 @@ const Category = require('../schema/category.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op } = require('sequelize');
-const { Setting } = require('../schema');
+const { Setting, AboutUs } = require('../schema');
 const axios = require('axios');
 
 exports.createCategory = async (req, res) => {
@@ -122,7 +122,8 @@ exports.adminCategoryBlock = async (req, res) => {
 exports.getSettings = async (req, res) => {
     try {
         const settings = await Setting.findOne();
-        return res.status(200).json({ success: true, settings });
+        const about = await AboutUs.findOne();
+        return res.status(200).json({ success: true, settings ,about });
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
     }
