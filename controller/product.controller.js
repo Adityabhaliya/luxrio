@@ -139,11 +139,42 @@ exports.biglistProductsPagination = async (req, res) => {
     const products = await Product.findAll({
       where: {
         deletedAt: null,
-        big_images: { [Op.ne]: null }  
+        big_images: { [Op.ne]: null }
       }
     });
 
-    return res.status(200).json({ success: true, data:products });
+    return res.status(200).json({ success: true, data: products });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+
+exports.genderlistProductsPagination = async (req, res) => {
+  try {
+
+    const type = req.query.type;
+
+    if (type === 'her') {
+      const products = await Product.findAll({
+        where: {
+          deletedAt: null,
+          gender: 'Women'
+        }
+      });
+
+      return res.status(200).json({ success: true, data: products });
+    }else if(type === 'him'){
+      const products = await Product.findAll({
+        where: {
+          deletedAt: null,
+          gender: 'Men'
+        }
+      });
+
+      return res.status(200).json({ success: true, data: products });
+    }
+
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
@@ -155,7 +186,7 @@ exports.alllistProductsPagination = async (req, res) => {
     const products = await Product.findAll({
       where: {
         deletedAt: null,
-       }
+      }
     });
 
     return res.status(200).json({ success: true, ...products });
