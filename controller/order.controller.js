@@ -25,7 +25,7 @@ exports.createOrder = async (req, res) => {
 
         const order = await Order.create({
             user_id: req.user.id,
-            product_ids: JSON.stringify(product_details.map(item => item.id)), // Store only product IDs as JSON
+            product_ids: product_details.map(item => item.id), // Store as an actual array
             total_amount,
             currency,
             address_id,
