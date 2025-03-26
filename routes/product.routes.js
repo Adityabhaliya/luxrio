@@ -16,7 +16,7 @@ router.put('/admin/product-block', verifyAdminToken ,adminProductBlock);
 router.get('/user/product-detail/:slug',verifyUserToken,listProductsPaginationUserBYSlug);
 router.get('/user/recommand-product-list',listRecommandProductsPaginationUserBYSlug); 
 router.get('/user/selling-product-list',listSellProductsPaginationUser); 
-router.get('/user/gender-product-list',genderlistProductsPagination);
+router.get('/admin/gender-product-list',genderlistProductsPagination);
 
 
 module.exports = router;
