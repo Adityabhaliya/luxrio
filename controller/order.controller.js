@@ -244,7 +244,7 @@ exports.listOrders = async (req, res) => {
 
 exports.listOrdersAdmin = async (req, res) => {
     try {
-        const { page = 1, size = 10, status = '', search = '', startDate, endDate } = req.query;
+        const { page = 1, size = 10, status = '', s = '', startDate, endDate } = req.query;
 
         const whereCondition = {};
         if (status) {
@@ -301,9 +301,9 @@ exports.listOrdersAdmin = async (req, res) => {
         }));
 
         // Filter results by search term if provided
-        const filteredOrders = search ? ordersWithProducts.filter(order => {
+        const filteredOrders = s ? ordersWithProducts.filter(order => {
             const orderString = JSON.stringify(order).toLowerCase();
-            return orderString.includes(search.toLowerCase());
+            return orderString.includes(s.toLowerCase());
         }) : ordersWithProducts;
 
         const [pendingCount, inProcessCount, shippingCount, deliveredCount,
