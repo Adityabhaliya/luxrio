@@ -1,6 +1,7 @@
 // 2. schema/productSchema.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../db/db.config');
+const Product = require('./product.schema');
 
 const category = sequelize.define('categories', {
     name: { type: DataTypes.STRING },
@@ -9,5 +10,5 @@ const category = sequelize.define('categories', {
     deletedAt: { type: DataTypes.DATE },
     is_block: { type: DataTypes.BOOLEAN },
 });
-
+ 
 module.exports = category;

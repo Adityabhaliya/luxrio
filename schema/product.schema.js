@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../db/db.config');
+const category = require('./category.schema');
 
 const Product = sequelize.define('products', {
   name: {
@@ -92,5 +93,5 @@ const Product = sequelize.define('products', {
   timestamps: true,   
   paranoid: true,    
 });
-
+ 
 module.exports =  Product  ;
