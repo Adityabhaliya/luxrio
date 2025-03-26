@@ -4,6 +4,7 @@ const { paginate } = require('../utils/common');
 const { Op } = require('sequelize');
 const { Wishlist, IPAddress } = require('../schema');
 
+const axios = require('axios');
 
 exports.createproduct = async (req, res) => {
   try {

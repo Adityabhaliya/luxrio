@@ -4,6 +4,7 @@ const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op } = require('sequelize');
 const { Setting, AboutUs, IPAddress } = require('../schema');
+const axios = require('axios');
 
 exports.addToCart = async (req, res) => {
     try {

@@ -3,6 +3,7 @@ const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op } = require('sequelize');
 const { Setting, Size } = require('../schema');
+const axios = require('axios');
 
 exports.createSize = async (req, res) => {
     try {

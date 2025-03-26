@@ -6,6 +6,7 @@ const { Wishlist, IPAddress } = require('../schema');
 const home_settings = require('../schema/home_setting.schema');
 const InstaPost = require('../schema/insta.schema');
 const FAQ = require('../schema/faq.schema');
+const axios = require('axios');
 
 // Add to Wishlist API
 exports.addToWishlist = async (req, res) => {
@@ -248,7 +249,8 @@ exports.deleteInstaPost = async (req, res) => {
 
 exports.listFAQs = async (req, res) => {
     try {
-        const faqs = await FAQ.findAll();
+         const faqs = await paginate(FAQ, page, size, whereCondition); // Order by createdAt DESC
+
         return res.status(200).json({ success: true, data: faqs });
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });

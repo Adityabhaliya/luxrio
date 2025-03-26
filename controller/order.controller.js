@@ -6,6 +6,7 @@ const { Setting, Product, User, Address, order_details } = require('../schema');
 const Order = require('../schema/order.schema');
 const Cart = require('../schema/cart.schema');
 const stripe = require('stripe')('sk_test_51R0hP8DPYqiRFj9aK46wcnApxCkAe8UMXSzPyVdIUfONAOI5pxAEJmkVU10y1665fXUuMcWBctdmGKj5lnINODhD005MwChyhy');
+const axios = require('axios');
 
 exports.createOrder = async (req, res) => {
     try {
