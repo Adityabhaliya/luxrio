@@ -2,6 +2,7 @@ const blog = require('../schema/blog.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op } = require('sequelize');
+const { IPAddress } = require('../schema');
 
 
 exports.createblog = async (req, res) => {
@@ -63,8 +64,34 @@ exports.deleteblog = async (req, res) => {
 exports.listblog = async (req, res) => {
   try {
     const blogs = await blog.findAll({ where: { deletedAt: null } });
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress; // Get IP Address
 
-    return res.status(200).json({ success: true, data: blogs });
+    if (!ip) {
+        return res.status(400).json({ success: false, error: "IP address not found." });
+    }
+
+    let country = "Unknown";
+    let is_india = false;
+
+    // Check if the IP is already stored
+    let existingIP = await IPAddress.findOne({ where: { ip_address: ip } });
+
+    if (existingIP) {
+        country = existingIP.country;
+    } else {
+        // Fetch country info from external API
+        const response = await axios.get(`http://ip-api.com/json/${ip}`);
+        country = response.data.country || "Unknown";
+
+        // Store in DB
+        existingIP = await IPAddress.create({ ip_address: ip, country });
+    }
+
+    // Determine if the IP is from India
+    if (country.toLowerCase() === "india") {
+        is_india = true;
+    }
+    return res.status(200).json({ success: true, data: blogs ,is_india });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
@@ -73,7 +100,33 @@ exports.listblog = async (req, res) => {
 exports.listblogsPagination = async (req, res) => {
   try {
     const { page = 1, size = 10, s = '' } = req.query; // Search term 's'
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress; // Get IP Address
 
+    if (!ip) {
+        return res.status(400).json({ success: false, error: "IP address not found." });
+    }
+
+    let country = "Unknown";
+    let is_india = false;
+
+    // Check if the IP is already stored
+    let existingIP = await IPAddress.findOne({ where: { ip_address: ip } });
+
+    if (existingIP) {
+        country = existingIP.country;
+    } else {
+        // Fetch country info from external API
+        const response = await axios.get(`http://ip-api.com/json/${ip}`);
+        country = response.data.country || "Unknown";
+
+        // Store in DB
+        existingIP = await IPAddress.create({ ip_address: ip, country });
+    }
+
+    // Determine if the IP is from India
+    if (country.toLowerCase() === "india") {
+        is_india = true;
+    }
     const whereCondition = { deletedAt: null };
 
     if (s) {
@@ -82,7 +135,7 @@ exports.listblogsPagination = async (req, res) => {
 
     const result = await paginate(blog, page, size, whereCondition); // Order by createdAt DESC
 
-    return res.status(200).json({ success: true, ...result });
+    return res.status(200).json({ success: true, ...result ,is_india });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
@@ -91,7 +144,33 @@ exports.listblogsPagination = async (req, res) => {
 exports.listblogsPaginationUser = async (req, res) => {
   try {
     const { page = 1, size = 10, s = '' } = req.query; // Search term 's'
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress; // Get IP Address
 
+    if (!ip) {
+        return res.status(400).json({ success: false, error: "IP address not found." });
+    }
+
+    let country = "Unknown";
+    let is_india = false;
+
+    // Check if the IP is already stored
+    let existingIP = await IPAddress.findOne({ where: { ip_address: ip } });
+
+    if (existingIP) {
+        country = existingIP.country;
+    } else {
+        // Fetch country info from external API
+        const response = await axios.get(`http://ip-api.com/json/${ip}`);
+        country = response.data.country || "Unknown";
+
+        // Store in DB
+        existingIP = await IPAddress.create({ ip_address: ip, country });
+    }
+
+    // Determine if the IP is from India
+    if (country.toLowerCase() === "india") {
+        is_india = true;
+    }
     const whereCondition = { deletedAt: null, is_block: false };
 
     if (s) {
@@ -99,7 +178,7 @@ exports.listblogsPaginationUser = async (req, res) => {
     }
 
     const result = await paginate(blog, page, size, whereCondition);
-    return res.status(200).json({ success: true, ...result });
+    return res.status(200).json({ success: true, ...result ,is_india });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
@@ -109,13 +188,40 @@ exports.listblogsPaginationUser = async (req, res) => {
 exports.getblogBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress; // Get IP Address
+
+    if (!ip) {
+        return res.status(400).json({ success: false, error: "IP address not found." });
+    }
+
+    let country = "Unknown";
+    let is_india = false;
+
+    // Check if the IP is already stored
+    let existingIP = await IPAddress.findOne({ where: { ip_address: ip } });
+
+    if (existingIP) {
+        country = existingIP.country;
+    } else {
+        // Fetch country info from external API
+        const response = await axios.get(`http://ip-api.com/json/${ip}`);
+        country = response.data.country || "Unknown";
+
+        // Store in DB
+        existingIP = await IPAddress.create({ ip_address: ip, country });
+    }
+
+    // Determine if the IP is from India
+    if (country.toLowerCase() === "india") {
+        is_india = true;
+    }
     const blog = await blog.findOne({ where: { slug, deletedAt: null } });
 
     if (!blog) {
       return res.status(404).json({ success: false, message: 'blog not found' });
     }
 
-    return res.status(200).json({ success: true, data: blog });
+    return res.status(200).json({ success: true, data: blog ,is_india });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }

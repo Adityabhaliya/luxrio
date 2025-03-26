@@ -3,7 +3,7 @@ const Product = require('../schema/product.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op } = require('sequelize');
-const { Setting, AboutUs } = require('../schema');
+const { Setting, AboutUs, IPAddress } = require('../schema');
 
 exports.addToCart = async (req, res) => {
     try {
@@ -48,6 +48,34 @@ exports.listCart = async (req, res) => {
             return { ...cartItem.toJSON(), product };
         }));
 
+        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress; // Get IP Address
+
+        if (!ip) {
+            return res.status(400).json({ success: false, error: "IP address not found." });
+        }
+
+        let country = "Unknown";
+        let is_india = false;
+
+        // Check if the IP is already stored
+        let existingIP = await IPAddress.findOne({ where: { ip_address: ip } });
+
+        if (existingIP) {
+            country = existingIP.country;
+        } else {
+            // Fetch country info from external API
+            const response = await axios.get(`http://ip-api.com/json/${ip}`);
+            country = response.data.country || "Unknown";
+
+            // Store in DB
+            existingIP = await IPAddress.create({ ip_address: ip, country });
+        }
+
+        // Determine if the IP is from India
+        if (country.toLowerCase() === "india") {
+            is_india = true;
+        }
+
         return res.status(200).json({
             success: true,
             cartItems: cartWithProducts,
@@ -55,7 +83,8 @@ exports.listCart = async (req, res) => {
             international_sale_tax: settings?.international_sale_tax || 0,
             shipping_charge: settings?.shipping_charge || 0,
             international_shipping_charge: settings?.international_shipping_charge || 0,
-            stripe_key: settings?.stripe_key || null
+            stripe_key: settings?.stripe_key || null,
+            is_india
         });
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
