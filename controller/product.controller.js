@@ -2,7 +2,7 @@ const Product = require('../schema/product.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op } = require('sequelize');
-const { Wishlist, IPAddress, category } = require('../schema');
+const { Wishlist, IPAddress } = require('../schema');
 
 const axios = require('axios');
 
@@ -386,70 +386,60 @@ exports.listProductsPaginationUser = async (req, res) => {
 
 exports.listSellProductsPaginationUser = async (req, res) => {
   try {
-      const { s = '' } = req.query; // Search term
-      const whereCondition = { deletedAt: null, is_block: false, is_sell: true };
+    const { s = '' } = req.query; // Search term 's'
+    const whereCondition = { deletedAt: null, is_block: false, is_sell: true };
 
-      if (s) {
-          whereCondition[Op.or] = [
-              { name: { [Op.like]: `%${s}%` } }
-          ];
-      }
+    if (s) {
+      whereCondition[Op.or] = [
+        { name: { [Op.like]: `%${s}%` } },
+        { category: { [Op.like]: `%${s}%` } }
+      ];
+    }
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress; // Get IP Address
 
-      // Get user's IP address
-      const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-      if (!ip) {
-          return res.status(400).json({ success: false, error: "IP address not found." });
-      }
+    if (!ip) {
+        return res.status(400).json({ success: false, error: "IP address not found." });
+    }
 
-      let country = "Unknown";
-      let is_india = false;
+    let country = "Unknown";
+    let is_india = false;
 
-      // Check if IP exists in the database
-      let existingIP = await IPAddress.findOne({ where: { ip_address: ip } });
+    // Check if the IP is already stored
+    let existingIP = await IPAddress.findOne({ where: { ip_address: ip } });
 
-      if (existingIP) {
-          country = existingIP.country;
-      } else {
-          // Fetch country info from external API
-          const response = await axios.get(`http://ip-api.com/json/${ip}`);
-          country = response.data.country || "Unknown";
+    if (existingIP) {
+        country = existingIP.country;
+    } else {
+        // Fetch country info from external API
+        const response = await axios.get(`http://ip-api.com/json/${ip}`);
+        country = response.data.country || "Unknown";
 
-          // Store in DB
-          existingIP = await IPAddress.create({ ip_address: ip, country });
-      }
+        // Store in DB
+        existingIP = await IPAddress.create({ ip_address: ip, country });
+    }
 
-      // Determine if the IP is from India
-      if (country.toLowerCase() === "india") {
-          is_india = true;
-      }
+    // Determine if the IP is from India
+    if (country.toLowerCase() === "india") {
+        is_india = true;
+    }
+    const products = await Product.findAll({ where: whereCondition });
+    const productIds = products.map(product => product.category).filter(Boolean); // Get unique category IDs
+    const categories = await Category.findAll({ where: { id: productIds } });
 
-      // Fetch products
-      const products = await Product.findAll({ where: whereCondition });
+    // Create a mapping of category ID to name
+    const categoryMap = {};
+    categories.forEach(category => {
+        categoryMap[category.id] = category.name;
+    });
 
-      // Get category names separately
-      const productIds = products.map(product => product.category).filter(Boolean); // Get unique category IDs
-      const categories = await category.findAll({ where: { id: productIds } });
-
-      // Create a mapping of category ID to name
-      const categoryMap = {};
-      categories.forEach(category => {
-          categoryMap[category.id] = category.name;
-      });
-
-      // Format response to include category name
-      const formattedProducts = products.map(product => ({
-          id: product.id,
-          name: product.name,
-          category_name: categoryMap[product.category] || null, // Get category name from map
-          price: product.price,
-          is_sell: product.is_sell
-      }));
-
-      return res.status(200).json({ success: true, products: formattedProducts, is_india });
-
+    const formattedProducts = products.map(product => ({
+      products,
+      category_name: categoryMap[product.category] || null, // Get category name from map
+      
+  }));
+    return res.status(200).json({ success: true, products :formattedProducts ,is_india});
   } catch (error) {
-      console.error("Error:", error);
-      return res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 };
 
