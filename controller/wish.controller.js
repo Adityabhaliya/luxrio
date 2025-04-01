@@ -2,7 +2,7 @@ const Product = require('../schema/product.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op } = require('sequelize');
-const { Wishlist, IPAddress } = require('../schema');
+const { Wishlist, IPAddress, AboutUs, Setting } = require('../schema');
 const home_settings = require('../schema/home_setting.schema');
 const InstaPost = require('../schema/insta.schema');
 const FAQ = require('../schema/faq.schema');
@@ -161,6 +161,27 @@ exports.listHomeSettings = async (req, res) => {
     }
 };
 
+exports.listHomeSettingsUser = async (req, res) => {
+    try {
+        const key = req.query.key
+        const data = await home_settings.findAll({ where: { key } });
+
+        if (!data || data.length === 0) {
+            return res.status(404).json({ success: false, message: "No home settings found." });
+        }
+
+        const aboutUs = await AboutUs.findOne();
+        if (!aboutUs) {
+            return res.status(404).json({ success: false, error: "About Us data not found." });
+        }
+        const setting = await Setting.findOne();
+
+        return res.status(200).json({ success: true, data ,aboutUs , term_condition: setting.term_condition});
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 
 
 
@@ -249,7 +270,7 @@ exports.deleteInstaPost = async (req, res) => {
 
 exports.listFAQs = async (req, res) => {
     try {
-         const faqs = await paginate(FAQ, page, size, whereCondition); // Order by createdAt DESC
+        const faqs = await paginate(FAQ, page, size, whereCondition); // Order by createdAt DESC
 
         return res.status(200).json({ success: true, data: faqs });
     } catch (error) {
