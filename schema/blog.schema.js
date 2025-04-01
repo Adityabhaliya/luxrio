@@ -6,6 +6,7 @@ const blogs = sequelize.define('blogs', {
   slug: { type: DataTypes.STRING },
   description: { type: DataTypes.STRING },
   images: { type: DataTypes.JSON },
+  tags: { type: DataTypes.JSON },
   meta_title: { type: DataTypes.STRING },
   meta_description: { type: DataTypes.STRING },
   meta_keyword: { type: DataTypes.STRING },

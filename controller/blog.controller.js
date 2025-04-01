@@ -15,7 +15,7 @@ exports.createblog = async (req, res) => {
       images,
       meta_title,
       meta_description,
-      meta_keyword } = req.body;
+      meta_keyword ,tags} = req.body;
 
     const slug = slugify(title, { lower: true });
 
@@ -26,7 +26,8 @@ exports.createblog = async (req, res) => {
       meta_title,
       meta_description,
       meta_keyword,
-      slug
+      slug,
+      tags
     });
 
 
