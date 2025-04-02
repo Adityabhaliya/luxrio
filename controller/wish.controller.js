@@ -161,25 +161,72 @@ exports.listHomeSettings = async (req, res) => {
     }
 };
 
+ 
 exports.listHomeSettingsUser = async (req, res) => {
     try {
-        const data = await home_settings.findAll();
+        // Fetch all required home settings
+        const banner1 = await home_settings.findOne({ where: { key: 'banner_1' } });
+        const banner2 = await home_settings.findOne({ where: { key: 'banner_2' } });
+        const new_arrivals_section = await home_settings.findOne({ where: { key: 'new_arrivals_section' } });
+        const her_section = await home_settings.findOne({ where: { key: 'her_section' } });
 
-        if (!data || data.length === 0) {
-            return res.status(404).json({ success: false, message: "No home settings found." });
-        }
-
+        // Fetch AboutUs and Setting
         const aboutUs = await AboutUs.findOne();
         if (!aboutUs) {
             return res.status(404).json({ success: false, error: "About Us data not found." });
         }
         const setting = await Setting.findOne();
 
-        return res.status(200).json({ success: true, data ,aboutUs , term_condition: setting.term_condition});
+        // Function to extract product IDs from settings
+        const extractProductIds = (setting) => {
+            if (!setting || !setting.value) return [];
+            try {
+                let parsed = JSON.parse(setting.value);
+                return Array.isArray(parsed) ? parsed.map(id => parseInt(id)) : [];
+            } catch (error) {
+                return [];
+            }
+        };
+
+        // Extract product IDs for banners and sections
+        const banner1Ids = extractProductIds(banner1);
+        const banner2Ids = extractProductIds(banner2);
+        const newArrivalsIds = extractProductIds(new_arrivals_section);
+        const herSectionIds = extractProductIds(her_section);
+
+        // Fetch products based on extracted IDs
+        const banner1Products = banner1Ids.length 
+            ? await Product.findAll({ where: { id: { [Op.in]: banner1Ids } } }) 
+            : [];
+
+        const banner2Products = banner2Ids.length 
+            ? await Product.findAll({ where: { id: { [Op.in]: banner2Ids } } }) 
+            : [];
+
+        const newArrivalsProducts = newArrivalsIds.length 
+            ? await Product.findAll({ where: { id: { [Op.in]: newArrivalsIds } } }) 
+            : [];
+
+        const herSectionProducts = herSectionIds.length 
+            ? await Product.findAll({ where: { id: { [Op.in]: herSectionIds } } }) 
+            : [];
+
+        return res.status(200).json({ 
+            success: true, 
+            banner1: banner1Products,  
+            banner2: banner2Products, 
+            new_arrivals_section: newArrivalsProducts, 
+            her_section: herSectionProducts, 
+            aboutUs, 
+            term_condition: setting.term_condition 
+        });
+
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
     }
 };
+
+
 
 
 
