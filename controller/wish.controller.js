@@ -163,8 +163,7 @@ exports.listHomeSettings = async (req, res) => {
 
 exports.listHomeSettingsUser = async (req, res) => {
     try {
-        const key = req.query.key
-        const data = await home_settings.findAll({ where: { key } });
+        const data = await home_settings.findAll();
 
         if (!data || data.length === 0) {
             return res.status(404).json({ success: false, message: "No home settings found." });
