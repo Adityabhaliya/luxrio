@@ -169,6 +169,9 @@ exports.listHomeSettingsUser = async (req, res) => {
         const banner2 = await home_settings.findOne({ where: { key: 'banner_2' } });
         const new_arrivals_section = await home_settings.findOne({ where: { key: 'new_arrivals_section' } });
         const her_section = await home_settings.findOne({ where: { key: 'her_section' } });
+        const him_section = await home_settings.findOne({ where: { key: 'him_section' } });
+        const him_big_image = await home_settings.findOne({ where: { key: 'him_big_image' } });
+        const her_big_image = await home_settings.findOne({ where: { key: 'her_big_image' } });
 
         // Fetch AboutUs and Setting
         const aboutUs = await AboutUs.findOne();
@@ -193,6 +196,7 @@ exports.listHomeSettingsUser = async (req, res) => {
         const banner2Ids = extractProductIds(banner2);
         const newArrivalsIds = extractProductIds(new_arrivals_section);
         const herSectionIds = extractProductIds(her_section);
+        const himSectionIds = extractProductIds(him_section);
 
         // Fetch products based on extracted IDs
         const banner1Products = banner1Ids.length 
@@ -211,12 +215,19 @@ exports.listHomeSettingsUser = async (req, res) => {
             ? await Product.findAll({ where: { id: { [Op.in]: herSectionIds } } }) 
             : [];
 
+            const himSectionProducts = himSectionIds.length 
+            ? await Product.findAll({ where: { id: { [Op.in]: himSectionIds } } }) 
+            : [];
+
         return res.status(200).json({ 
             success: true, 
             banner1: banner1Products,  
             banner2: banner2Products, 
             new_arrivals_section: newArrivalsProducts, 
-            her_section: herSectionProducts, 
+            her_section: herSectionProducts,  
+            him_section: himSectionProducts, 
+            her_big_image,
+            him_big_image,
             aboutUs, 
             term_condition: setting.term_condition 
         });
