@@ -270,7 +270,7 @@ exports.deleteInstaPost = async (req, res) => {
 
 exports.listFAQs = async (req, res) => {
     try {
-        const faqs = await paginate(FAQ, page, size, whereCondition); // Order by createdAt DESC
+        const faqs = await FAQ.findAll(); // Order by createdAt DESC
 
         return res.status(200).json({ success: true, data: faqs });
     } catch (error) {
