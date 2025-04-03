@@ -161,7 +161,6 @@ exports.listHomeSettings = async (req, res) => {
     }
 };
 
- 
 exports.listHomeSettingsUser = async (req, res) => {
     try {
         // Fetch all required home settings
@@ -229,7 +228,8 @@ exports.listHomeSettingsUser = async (req, res) => {
             her_big_image,
             him_big_image,
             aboutUs, 
-            term_condition: setting.term_condition 
+            term_condition: setting.term_condition,
+            privacy_policy: setting.privacy_policy
         });
 
     } catch (error) {

@@ -324,3 +324,22 @@ exports.addSubscriber = async (req, res) => {
         return res.status(500).json({ success: false, error: error.message });
     }
 };
+
+
+exports.SubscriberList = async (req, res) => {
+    try {
+        const { page = 1, size = 10, s = '' } = req.query; // Search term 's'
+
+        const whereCondition = { deletedAt: null };
+
+        if (s) {
+            whereCondition.email = { [Op.like]: `%${s}%` }; // Search by category name
+        }
+
+        const result = await paginate(Subscriber, page, size, whereCondition);
+
+        res.status(200).json({ success: true, ...result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
