@@ -1,6 +1,6 @@
 // 6. routes/userRoutes.js
 const express = require('express');
-const { registerUser, loginUser, sendOtp, adminLogin, SubscriberList ,welcome ,adminUserBlock,uploadImage,  resetPassword, forgetPassword,  adminUserDetails, UserDetails, addSubscriber} = require('../controller/user.controller');
+const { registerUser, loginUser, sendOtp, adminLogin, SubscriberList ,welcome ,adminUserBlock,uploadImage,  resetPassword, forgetPassword,  adminUserDetails, UserDetails, addSubscriber, logout} = require('../controller/user.controller');
 const { verifyAdminToken, verifyUserToken } = require('../tokenizer/token');
 
 const router = express.Router();
@@ -16,7 +16,8 @@ router.get('/admin/users', verifyAdminToken ,adminUserDetails);
 router.get('/user/details', verifyUserToken ,UserDetails);
 router.put('/admin/user-block', verifyAdminToken ,adminUserBlock);
 router.post('/user/subscribe', addSubscriber);
-router.get('/admin/subscriber-list',verifyAdminToken, SubscriberList);
+router.get('/admin/subscriber-list',verifyAdminToken, SubscriberList); 
+router.get('/user/logout',verifyUserToken, logout);
 
 
 

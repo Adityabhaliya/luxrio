@@ -188,7 +188,7 @@ exports.listblogsPaginationUser = async (req, res) => {
   }
 };
 
-
+  
 exports.getblogBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
