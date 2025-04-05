@@ -22,7 +22,35 @@ exports.editCategory = async (req, res) => {
         const { name, image } = req.body;
         const { slug } = req.params;
 
+        // First find the category to get the old name
+        const category = await Category.findOne({ where: { slug } });
+        if (!category) {
+            return res.status(404).json({ success: false, error: 'Category not found' });
+        }
+
+        const oldName = category.name;
+
+        // Update the category
         await Category.update({ name, image }, { where: { slug } });
+
+        // If the name changed, update all products that reference this category
+        if (name && name !== oldName) {
+            // Find all products that have this category in their category field
+            const products = await Product.findAll({
+                where: {
+                    category: oldName // Look for products with the old category name
+                }
+            });
+
+            // Update each product's category to the new name
+            await Promise.all(products.map(product => 
+                Product.update(
+                    { category: name },
+                    { where: { id: product.id } }
+                )
+            ));
+        }
+
         res.status(200).json({ success: true, message: 'Category updated successfully' });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
