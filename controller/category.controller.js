@@ -2,7 +2,7 @@ const Category = require('../schema/category.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op } = require('sequelize');
-const { Setting, AboutUs } = require('../schema');
+const { Setting, AboutUs, Product } = require('../schema');
 const axios = require('axios');
 
 exports.createCategory = async (req, res) => {
