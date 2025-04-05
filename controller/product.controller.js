@@ -111,7 +111,7 @@ exports.listCategories = async (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress; // Get IP Address
 
     if (!ip) {
-        return res.status(400).json({ success: false, error: "IP address not found." });
+      return res.status(400).json({ success: false, error: "IP address not found." });
     }
 
     let country = "Unknown";
@@ -121,24 +121,24 @@ exports.listCategories = async (req, res) => {
     let existingIP = await IPAddress.findOne({ where: { ip_address: ip } });
 
     if (existingIP) {
-        country = existingIP.country;
+      country = existingIP.country;
     } else {
-        // Fetch country info from external API
-        const response = await axios.get(`http://ip-api.com/json/${ip}`);
-        country = response.data.country || "Unknown";
+      // Fetch country info from external API
+      const response = await axios.get(`http://ip-api.com/json/${ip}`);
+      country = response.data.country || "Unknown";
 
-        // Store in DB
-        existingIP = await IPAddress.create({ ip_address: ip, country });
+      // Store in DB
+      existingIP = await IPAddress.create({ ip_address: ip, country });
     }
 
     // Determine if the IP is from India
     if (country.toLowerCase() === "india") {
-        is_india = true;
+      is_india = true;
     }
 
     const products = await Product.findAll({ where: { deletedAt: null } });
 
-    return res.status(200).json({ success: true, data: products ,is_india });
+    return res.status(200).json({ success: true, data: products, is_india });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
@@ -157,7 +157,7 @@ exports.listProductsPagination = async (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress; // Get IP Address
 
     if (!ip) {
-        return res.status(400).json({ success: false, error: "IP address not found." });
+      return res.status(400).json({ success: false, error: "IP address not found." });
     }
 
     let country = "Unknown";
@@ -167,24 +167,24 @@ exports.listProductsPagination = async (req, res) => {
     let existingIP = await IPAddress.findOne({ where: { ip_address: ip } });
 
     if (existingIP) {
-        country = existingIP.country;
+      country = existingIP.country;
     } else {
-        // Fetch country info from external API
-        const response = await axios.get(`http://ip-api.com/json/${ip}`);
-        country = response.data.country || "Unknown";
+      // Fetch country info from external API
+      const response = await axios.get(`http://ip-api.com/json/${ip}`);
+      country = response.data.country || "Unknown";
 
-        // Store in DB
-        existingIP = await IPAddress.create({ ip_address: ip, country });
+      // Store in DB
+      existingIP = await IPAddress.create({ ip_address: ip, country });
     }
 
     // Determine if the IP is from India
     if (country.toLowerCase() === "india") {
-        is_india = true;
+      is_india = true;
     }
 
     const result = await paginate(Product, page, size, whereCondition); // Order by createdAt DESC
 
-    return res.status(200).json({ success: true, ...result ,is_india });
+    return res.status(200).json({ success: true, ...result, is_india });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
@@ -192,103 +192,103 @@ exports.listProductsPagination = async (req, res) => {
 
 exports.biglistProductsPagination = async (req, res) => {
   try {
-      // Fetch products where big_images is NOT NULL
-      const products = await Product.findAll({
-          where: {
-              deletedAt: null,
-              big_images: { [Op.ne]: null } // Ensure big_images is not null
-          }
-      });
-
-      const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress; // Get IP Address
-
-      if (!ip) {
-          return res.status(400).json({ success: false, error: "IP address not found." });
+    // Fetch products where big_images is NOT NULL
+    const products = await Product.findAll({
+      where: {
+        deletedAt: null,
+        big_images: { [Op.ne]: null } // Ensure big_images is not null
       }
+    });
 
-      let country = "Unknown";
-      let is_india = false;
+    const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress; // Get IP Address
 
-      // Check if the IP is already stored
-      let existingIP = await IPAddress.findOne({ where: { ip_address: ip } });
+    if (!ip) {
+      return res.status(400).json({ success: false, error: "IP address not found." });
+    }
 
-      if (existingIP) {
-          country = existingIP.country;
-      } else {
-          // Fetch country info from external API
-          const response = await axios.get(`http://ip-api.com/json/${ip}`);
-          country = response.data.country || "Unknown";
+    let country = "Unknown";
+    let is_india = false;
 
-          // Store in DB
-          existingIP = await IPAddress.create({ ip_address: ip, country });
-      }
+    // Check if the IP is already stored
+    let existingIP = await IPAddress.findOne({ where: { ip_address: ip } });
 
-      // Determine if the IP is from India
-      if (country.toLowerCase() === "india") {
-          is_india = true;
-      }
+    if (existingIP) {
+      country = existingIP.country;
+    } else {
+      // Fetch country info from external API
+      const response = await axios.get(`http://ip-api.com/json/${ip}`);
+      country = response.data.country || "Unknown";
 
-      return res.status(200).json({ success: true, data: products, is_india });
+      // Store in DB
+      existingIP = await IPAddress.create({ ip_address: ip, country });
+    }
+
+    // Determine if the IP is from India
+    if (country.toLowerCase() === "india") {
+      is_india = true;
+    }
+
+    return res.status(200).json({ success: true, data: products, is_india });
   } catch (error) {
-      console.error("Error in biglistProductsPagination:", error); // Log error for debugging
-      return res.status(500).json({ success: false, error: error.message });
+    console.error("Error in biglistProductsPagination:", error); // Log error for debugging
+    return res.status(500).json({ success: false, error: error.message });
   }
 };
 exports.genderlistProductsPagination = async (req, res) => {
   try {
-      const { type } = req.query;
+    const { type } = req.query;
 
-      if (!type || (type !== 'her' && type !== 'him')) {
-          return res.status(400).json({ success: false, error: "Invalid type. Use 'her' or 'him'." });
+    if (!type || (type !== 'her' && type !== 'him')) {
+      return res.status(400).json({ success: false, error: "Invalid type. Use 'her' or 'him'." });
+    }
+
+    const gender = type === 'her' ? 'Women' : 'Men';
+
+    // Fetch products based on gender
+    const products = await Product.findAll({
+      where: {
+        deletedAt: null,
+        gender
       }
+    });
 
-      const gender = type === 'her' ? 'Women' : 'Men';
+    // Get user's IP address
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    if (!ip) {
+      return res.status(400).json({ success: false, error: "IP address not found." });
+    }
 
-      // Fetch products based on gender
-      const products = await Product.findAll({
-          where: {
-              deletedAt: null,
-              gender
-          }
-      });
+    let country = "Unknown";
+    let is_india = false;
 
-      // Get user's IP address
-      const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-      if (!ip) {
-          return res.status(400).json({ success: false, error: "IP address not found." });
-      }
+    // Check if IP already exists in the database
+    let existingIP = await IPAddress.findOne({ where: { ip_address: ip } });
 
-      let country = "Unknown";
-      let is_india = false;
+    if (existingIP) {
+      country = existingIP.country;
+    } else {
+      // Fetch country info from external API
+      const response = await axios.get(`http://ip-api.com/json/${ip}`);
+      country = response.data.country || "Unknown";
 
-      // Check if IP already exists in the database
-      let existingIP = await IPAddress.findOne({ where: { ip_address: ip } });
+      // Store IP in the database
+      existingIP = await IPAddress.create({ ip_address: ip, country });
+    }
 
-      if (existingIP) {
-          country = existingIP.country;
-      } else {
-          // Fetch country info from external API
-          const response = await axios.get(`http://ip-api.com/json/${ip}`);
-          country = response.data.country || "Unknown";
+    // Determine if the IP is from India
+    if (country.toLowerCase() === "india") {
+      is_india = true;
+    }
 
-          // Store IP in the database
-          existingIP = await IPAddress.create({ ip_address: ip, country });
-      }
-
-      // Determine if the IP is from India
-      if (country.toLowerCase() === "india") {
-          is_india = true;
-      }
-
-      return res.status(200).json({
-          success: true,
-          data: products,
-          is_india
-      });
+    return res.status(200).json({
+      success: true,
+      data: products,
+      is_india
+    });
 
   } catch (error) {
-      console.error("Error:", error); // Debugging
-      return res.status(500).json({ success: false, error: error.message });
+    console.error("Error:", error); // Debugging
+    return res.status(500).json({ success: false, error: error.message });
   }
 };
 
@@ -343,16 +343,11 @@ exports.listProductsPaginationUser = async (req, res) => {
 
     const whereCondition = { deletedAt: null, is_block: false };
 
-    if (s) {
-      whereCondition[Op.or] = [
-        { name: { [Op.like]: `%${s}%` } }, // Search by name
-        { category: { [Op.like]: `%${s}%` } } // Search by category
-      ];
-    }
+
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress; // Get IP Address
 
     if (!ip) {
-        return res.status(400).json({ success: false, error: "IP address not found." });
+      return res.status(400).json({ success: false, error: "IP address not found." });
     }
 
     let country = "Unknown";
@@ -362,22 +357,36 @@ exports.listProductsPaginationUser = async (req, res) => {
     let existingIP = await IPAddress.findOne({ where: { ip_address: ip } });
 
     if (existingIP) {
-        country = existingIP.country;
+      country = existingIP.country;
     } else {
-        // Fetch country info from external API
-        const response = await axios.get(`http://ip-api.com/json/${ip}`);
-        country = response.data.country || "Unknown";
+      // Fetch country info from external API
+      const response = await axios.get(`http://ip-api.com/json/${ip}`);
+      country = response.data.country || "Unknown";
 
-        // Store in DB
-        existingIP = await IPAddress.create({ ip_address: ip, country });
+      // Store in DB
+      existingIP = await IPAddress.create({ ip_address: ip, country });
     }
 
     // Determine if the IP is from India
     if (country.toLowerCase() === "india") {
-        is_india = true;
+      is_india = true;
     }
     const result = await paginate(Product, page, size, whereCondition);
-    return res.status(200).json({ success: true, ...result ,is_india });
+
+    const filteredProducts = s ? result.data.filter(product => {
+      const productString = JSON.stringify(product).toLowerCase();
+      return productString.includes(s.toLowerCase());
+    }) : result.data;
+
+    return res.status(200).json({
+      success: true,
+      data: filteredProducts,
+      totalItems: filteredProducts.length,
+      totalPages: Math.ceil(filteredProducts.length / size),
+      currentPage: page,
+      is_india
+    });
+    // return res.status(200).json({ success: true, ...result ,is_india });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
@@ -387,7 +396,7 @@ exports.listProductsPaginationUser = async (req, res) => {
 exports.listSellProductsPaginationUser = async (req, res) => {
   try {
     const { s = '' } = req.query; // Search term 's'
-    
+
     const whereCondition = { deletedAt: null, is_block: false, is_sell: true };
 
     if (s) {
@@ -491,7 +500,7 @@ exports.listProductsPaginationUserBYSlug = async (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress; // Get IP Address
 
     if (!ip) {
-        return res.status(400).json({ success: false, error: "IP address not found." });
+      return res.status(400).json({ success: false, error: "IP address not found." });
     }
 
     let country = "Unknown";
@@ -501,22 +510,22 @@ exports.listProductsPaginationUserBYSlug = async (req, res) => {
     let existingIP = await IPAddress.findOne({ where: { ip_address: ip } });
 
     if (existingIP) {
-        country = existingIP.country;
+      country = existingIP.country;
     } else {
-        // Fetch country info from external API
-        const response = await axios.get(`http://ip-api.com/json/${ip}`);
-        country = response.data.country || "Unknown";
+      // Fetch country info from external API
+      const response = await axios.get(`http://ip-api.com/json/${ip}`);
+      country = response.data.country || "Unknown";
 
-        // Store in DB
-        existingIP = await IPAddress.create({ ip_address: ip, country });
+      // Store in DB
+      existingIP = await IPAddress.create({ ip_address: ip, country });
     }
 
     // Determine if the IP is from India
     if (country.toLowerCase() === "india") {
-        is_india = true;
+      is_india = true;
     }
 
-    return res.status(200).json({ success: true, data: response ,is_india });
+    return res.status(200).json({ success: true, data: response, is_india });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
@@ -537,7 +546,7 @@ exports.listRecommandProductsPaginationUserBYSlug = async (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress; // Get IP Address
 
     if (!ip) {
-        return res.status(400).json({ success: false, error: "IP address not found." });
+      return res.status(400).json({ success: false, error: "IP address not found." });
     }
 
     let country = "Unknown";
@@ -547,19 +556,19 @@ exports.listRecommandProductsPaginationUserBYSlug = async (req, res) => {
     let existingIP = await IPAddress.findOne({ where: { ip_address: ip } });
 
     if (existingIP) {
-        country = existingIP.country;
+      country = existingIP.country;
     } else {
-        // Fetch country info from external API
-        const response = await axios.get(`http://ip-api.com/json/${ip}`);
-        country = response.data.country || "Unknown";
+      // Fetch country info from external API
+      const response = await axios.get(`http://ip-api.com/json/${ip}`);
+      country = response.data.country || "Unknown";
 
-        // Store in DB
-        existingIP = await IPAddress.create({ ip_address: ip, country });
+      // Store in DB
+      existingIP = await IPAddress.create({ ip_address: ip, country });
     }
 
     // Determine if the IP is from India
     if (country.toLowerCase() === "india") {
-        is_india = true;
+      is_india = true;
     }
 
     // Fetch all products with the same category
@@ -571,7 +580,7 @@ exports.listRecommandProductsPaginationUserBYSlug = async (req, res) => {
 
     const result = await paginate(Product, page, size, whereCondition);
 
-    return res.status(200).json({ success: true, ...result ,is_india});
+    return res.status(200).json({ success: true, ...result, is_india });
 
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
@@ -588,7 +597,7 @@ exports.getproductBySlug = async (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress; // Get IP Address
 
     if (!ip) {
-        return res.status(400).json({ success: false, error: "IP address not found." });
+      return res.status(400).json({ success: false, error: "IP address not found." });
     }
 
     let country = "Unknown";
@@ -598,25 +607,25 @@ exports.getproductBySlug = async (req, res) => {
     let existingIP = await IPAddress.findOne({ where: { ip_address: ip } });
 
     if (existingIP) {
-        country = existingIP.country;
+      country = existingIP.country;
     } else {
-        // Fetch country info from external API
-        const response = await axios.get(`http://ip-api.com/json/${ip}`);
-        country = response.data.country || "Unknown";
+      // Fetch country info from external API
+      const response = await axios.get(`http://ip-api.com/json/${ip}`);
+      country = response.data.country || "Unknown";
 
-        // Store in DB
-        existingIP = await IPAddress.create({ ip_address: ip, country });
+      // Store in DB
+      existingIP = await IPAddress.create({ ip_address: ip, country });
     }
 
     // Determine if the IP is from India
     if (country.toLowerCase() === "india") {
-        is_india = true;
+      is_india = true;
     }
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
 
-    return res.status(200).json({ success: true, data: product ,is_india});
+    return res.status(200).json({ success: true, data: product, is_india });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
