@@ -265,5 +265,44 @@ exports.getSampleRatings = async (req, res) => {
       res.status(500).json({ success: false, error: error.message });
     }
   };
+
+
+  exports.getProductReview = async (req, res) => {
+    try {
+      const product_id = req.params.id;
+  
+      if (!product_id) {
+        return res.status(400).json({ success: false, message: "Product ID is required." });
+      }
+  
+      // Step 1: Find all order_details with this product_id
+      const orderDetails = await order_details.findAll({
+        where: { product_id }
+      });
+  
+      if (!orderDetails || orderDetails.length === 0) {
+        return res.status(404).json({ success: false, message: "No orders found for this product." });
+      }
+  
+      // Step 2: Extract order_ids from orderDetails
+      const orderIds = orderDetails.map(detail => detail.order_id);
+  
+      // Step 3: Find ratings where order_id is in those orderIds
+      const ratings = await Rating.findAll({
+        where: {
+          order_id: orderIds
+        }
+      });
+  
+      res.status(200).json({
+        success: true,
+        message: "Product reviews fetched successfully.",
+        data: ratings
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  };
+  
   
 
