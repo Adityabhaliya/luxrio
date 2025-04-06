@@ -2,9 +2,10 @@ const Category = require('../schema/category.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op, where } = require('sequelize');
-const { Setting, Size, Rating, order_details } = require('../schema');
+const { Setting, Size, Rating, order_details, User } = require('../schema');
 const axios = require('axios');
 const ratingSchema = require('../schema/rating.schema');
+const moment = require('moment'); // import moment
 
 exports.createSize = async (req, res) => {
     try {
@@ -267,6 +268,7 @@ exports.getSampleRatings = async (req, res) => {
   };
 
 
+
   exports.getProductReview = async (req, res) => {
     try {
       const product_id = req.params.id;
@@ -294,11 +296,69 @@ exports.getSampleRatings = async (req, res) => {
         }
       });
   
+      // Step 4: Add user and timeAgo field
+      const ratingsWithUser = await Promise.all(ratings.map(async (rating) => {
+        const user = await User.findOne({ where: { id: rating.user_id } });
+  
+        return {
+          ...rating.toJSON(),
+          user: user ? {
+            id: user.id,
+            name: user.name,
+            lastname: user.lastname,
+            email: user.email
+          } : null,
+          timeAgo: moment(rating.createdAt).fromNow() // e.g., "2 days ago"
+        };
+      }));
+  
       res.status(200).json({
         success: true,
         message: "Product reviews fetched successfully.",
-        data: ratings
+        data: ratingsWithUser
       });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  };
+  
+  
+
+  exports.updateRatingLikeUnlike = async (req, res) => {
+    try {
+      const { rating_id, rate_like, rate_unlike } = req.body;
+  
+      if (!rating_id) {
+        return res.status(400).json({ success: false, message: "rating_id is required." });
+      }
+  
+      // Find the rating record
+      const rating = await Rating.findOne({ where: { id: rating_id } });
+  
+      if (!rating) {
+        return res.status(404).json({ success: false, message: "Rating not found." });
+      }
+  
+      // Handle increment logic
+      if (rate_like === true) {
+        rating.rate_like = rating.rate_like + 1;
+      }
+  
+      if (rate_unlike === true) {
+        rating.rate_unlike = rating.rate_unlike + 1;
+      }
+  
+      await rating.save();
+  
+      res.status(200).json({
+        success: true,
+        message: "Rating like/unlike updated successfully.",
+        data: {
+          rate_like: rating.rate_like,
+          rate_unlike: rating.rate_unlike
+        }
+      });
+  
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
     }
