@@ -10,8 +10,7 @@ const ratingSchema = sequelize.define('ratings', {
     
 }, {
     timestamps: true,
-    paranoid: true,
-});
+ });
 
 module.exports = ratingSchema;
 
