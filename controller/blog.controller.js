@@ -219,13 +219,13 @@ exports.getblogBySlug = async (req, res) => {
     if (country.toLowerCase() === "india") {
         is_india = true;
     }
-    const blog = await blog.findOne({ where: { slug, deletedAt: null } });
+    const blogs = await blog.findOne({ where: { slug, deletedAt: null } });
 
-    if (!blog) {
+    if (!blogs) {
       return res.status(404).json({ success: false, message: 'blog not found' });
     }
 
-    return res.status(200).json({ success: true, data: blog ,is_india });
+    return res.status(200).json({ success: true, data: blogs ,is_india });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
