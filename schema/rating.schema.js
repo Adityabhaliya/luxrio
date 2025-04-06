@@ -1,6 +1,6 @@
 // models/review.js
 module.exports = (sequelize, DataTypes) => {
-    const Rating = sequelize.define('ratings', {
+    const ratingSchema = sequelize.define('ratings', {
         id: {
             type: DataTypes.INTEGER,
             autoIncrement: true,
@@ -33,5 +33,5 @@ module.exports = (sequelize, DataTypes) => {
 
      
 
-    return Rating;
+    return ratingSchema;
 };

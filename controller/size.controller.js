@@ -1,9 +1,10 @@
 const Category = require('../schema/category.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
-const { Op } = require('sequelize');
+const { Op, where } = require('sequelize');
 const { Setting, Size, Rating } = require('../schema');
 const axios = require('axios');
+const ratingSchema = require('../schema/rating.schema');
 
 exports.createSize = async (req, res) => {
     try {
@@ -122,60 +123,98 @@ exports.deleteSize = async (req, res) => {
 
 exports.addReview = async (req, res) => {
     try {
-      const { product_id, rating, description } = req.body;
-      const user_id = req.user.id;
+        const { product_id, rating, description } = req.body;
+        const user_id = req.user.id;
 
-  
-      if (rating < 1 || rating > 5) {
-        return res.status(400).json({ success: false, message: "Rating must be between 1 and 5." });
-      }
-  
-       const existing = await Rating.findOne({ where: { user_id, product_id } });
-      if (existing) {
-        return res.status(400).json({ success: false, message: "You have already reviewed this product." });
-      }
-  
-      const newRating = await Rating.create({
-        user_id,
-        product_id,
-        rating,
-        description
-      });
-  
-      res.status(201).json({ success: true, message: "Review added successfully", data: newRating });
+
+        if (rating < 1 || rating > 5) {
+            return res.status(400).json({ success: false, message: "Rating must be between 1 and 5." });
+        }
+
+        const existing = await ratingSchema.findOne({ where: { user_id, product_id } });
+        if (existing) {
+            return res.status(400).json({ success: false, message: "You have already reviewed this product." });
+        }
+
+        const newRating = await ratingSchema.create({
+            user_id,
+            product_id,
+            rating,
+            description
+        });
+
+        res.status(201).json({ success: true, message: "Review added successfully", data: newRating });
     } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
+        res.status(500).json({ success: false, error: error.message });
     }
-  };
+};
 
-  exports.editReview = async (req, res) => {
+exports.editReview = async (req, res) => {
     try {
-      const { id } = req.params; // Review ID in URL
-      const { rating, description } = req.body;
-      const user_id = req.user.id;
-  
-      if (!id) {
-        return res.status(400).json({ success: false, message: "Review ID is required." });
-      }
-  
-      if (rating && (rating < 1 || rating > 5)) {
-        return res.status(400).json({ success: false, message: "Rating must be between 1 and 5." });
-      }
-  
-      const existing = await Rating.findOne({ where: { id, user_id } });
-  
-      if (!existing) {
-        return res.status(404).json({ success: false, message: "Review not found or you are not authorized to update it." });
-      }
-  
-      existing.rating = rating !== undefined ? rating : existing.rating;
-      existing.description = description !== undefined ? description : existing.description;
+        const { id } = req.params; // Review ID in URL
+        const { rating, description } = req.body;
+        const user_id = req.user.id;
 
-      await existing.save();
-  
-      res.status(200).json({ success: true, message: "Review updated successfully", data: existing });
+        if (!id) {
+            return res.status(400).json({ success: false, message: "Review ID is required." });
+        }
+
+        if (rating && (rating < 1 || rating > 5)) {
+            return res.status(400).json({ success: false, message: "Rating must be between 1 and 5." });
+        }
+
+        const existing = await ratingSchema.findOne({ where: { id, user_id } });
+
+        if (!existing) {
+            return res.status(404).json({ success: false, message: "Review not found or you are not authorized to update it." });
+        }
+
+        existing.rating = rating !== undefined ? rating : existing.rating;
+        existing.description = description !== undefined ? description : existing.description;
+
+        await existing.save();
+
+        res.status(200).json({ success: true, message: "Review updated successfully", data: existing });
     } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
+        res.status(500).json({ success: false, error: error.message });
     }
-  };
-  
+};
+
+exports.getAllReviews = async (req, res) => {
+    try {
+        const user_id = req.user.id;
+
+        const reviews = await ratingSchema.findAll({ where: { user_id } });
+
+        res.status(200).json({
+            success: true,
+            message: "All reviews fetched successfully.",
+            data: reviews,
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+exports.getReviewById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user_id = req.user.id;
+
+        const review = await ratingSchema.findOne({ where: { id, user_id } });
+
+        if (!review) {
+            return res.status(404).json({ success: false, message: "Review not found." });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Review fetched successfully.",
+            data: review,
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+
