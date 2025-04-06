@@ -2,7 +2,7 @@ const Category = require('../schema/category.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op, where } = require('sequelize');
-const { Setting, Size, Rating } = require('../schema');
+const { Setting, Size, Rating, order_details } = require('../schema');
 const axios = require('axios');
 const ratingSchema = require('../schema/rating.schema');
 
@@ -288,7 +288,7 @@ exports.getSampleRatings = async (req, res) => {
       const orderIds = orderDetails.map(detail => detail.order_id);
   
       // Step 3: Find ratings where order_id is in those orderIds
-      const ratings = await Rating.findAll({
+      const ratings = await ratingSchema.findAll({
         where: {
           order_id: orderIds
         }
