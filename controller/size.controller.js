@@ -219,3 +219,51 @@ exports.getReviewById = async (req, res) => {
 };
 
 
+// controllers/reviewSampleController.js
+
+exports.getSampleRatings = async (req, res) => {
+    try {
+      const sampleReviews = [
+        {
+          image: "https://fastly.picsum.photos/id/288/200/300.jpg?hmac=45WLionXnoogi0-njKuSNnVY5hnswMhf-CrxwzKTcrc",
+          name: "Amit Sharma",
+          rating: 5,
+          description: "Absolutely loved the product! Great quality and fast delivery."
+        },
+        {
+          image: "https://fastly.picsum.photos/id/288/200/300.jpg?hmac=45WLionXnoogi0-njKuSNnVY5hnswMhf-CrxwzKTcrc",
+          name: "Pooja Patel",
+          rating: 4.5,
+          description: "Good product overall, would definitely recommend to others."
+        },
+        {
+          image: "https://fastly.picsum.photos/id/288/200/300.jpg?hmac=45WLionXnoogi0-njKuSNnVY5hnswMhf-CrxwzKTcrc",
+          name: "Rahul Mehra",
+          rating: 4,
+          description: "Nice and affordable. Could improve the packaging."
+        },
+        {
+          image: "https://fastly.picsum.photos/id/288/200/300.jpg?hmac=45WLionXnoogi0-njKuSNnVY5hnswMhf-CrxwzKTcrc",
+          name: "Sneha Roy",
+          rating: 5,
+          description: "Exceeded my expectations! Very happy with my purchase."
+        },
+        {
+          image: "https://fastly.picsum.photos/id/288/200/300.jpg?hmac=45WLionXnoogi0-njKuSNnVY5hnswMhf-CrxwzKTcrc",
+          name: "Vikram Joshi",
+          rating: 3.5,
+          description: "Product is decent, but shipping took longer than expected."
+        }
+      ];
+  
+      res.status(200).json({
+        success: true,
+        message: "random reviews fetched successfully",
+        data: sampleReviews
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  };
+  
+
