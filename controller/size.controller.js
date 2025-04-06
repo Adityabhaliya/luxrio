@@ -2,7 +2,7 @@ const Category = require('../schema/category.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op } = require('sequelize');
-const { Setting, Size } = require('../schema');
+const { Setting, Size, Rating } = require('../schema');
 const axios = require('axios');
 
 exports.createSize = async (req, res) => {
@@ -118,3 +118,64 @@ exports.deleteSize = async (req, res) => {
         return res.status(500).json({ success: false, error: error.message });
     }
 };
+
+
+exports.addReview = async (req, res) => {
+    try {
+      const { product_id, rating, description } = req.body;
+      const user_id = req.user.id;
+
+  
+      if (rating < 1 || rating > 5) {
+        return res.status(400).json({ success: false, message: "Rating must be between 1 and 5." });
+      }
+  
+       const existing = await Rating.findOne({ where: { user_id, product_id } });
+      if (existing) {
+        return res.status(400).json({ success: false, message: "You have already reviewed this product." });
+      }
+  
+      const newRating = await Rating.create({
+        user_id,
+        product_id,
+        rating,
+        description
+      });
+  
+      res.status(201).json({ success: true, message: "Review added successfully", data: newRating });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  };
+
+  exports.editReview = async (req, res) => {
+    try {
+      const { id } = req.params; // Review ID in URL
+      const { rating, description } = req.body;
+      const user_id = req.user.id;
+  
+      if (!id) {
+        return res.status(400).json({ success: false, message: "Review ID is required." });
+      }
+  
+      if (rating && (rating < 1 || rating > 5)) {
+        return res.status(400).json({ success: false, message: "Rating must be between 1 and 5." });
+      }
+  
+      const existing = await Rating.findOne({ where: { id, user_id } });
+  
+      if (!existing) {
+        return res.status(404).json({ success: false, message: "Review not found or you are not authorized to update it." });
+      }
+  
+      existing.rating = rating !== undefined ? rating : existing.rating;
+      existing.description = description !== undefined ? description : existing.description;
+
+      await existing.save();
+  
+      res.status(200).json({ success: true, message: "Review updated successfully", data: existing });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  };
+  

@@ -15,5 +15,6 @@ const FAQ = require('./faq.schema');
 const AboutUs = require('./about.schema');
 const Subscriber = require('./subscriber.schema');
 const IPAddress = require('./ip.schema');  
+const Rating = require('./rating.schema');
 
-module.exports = {home_setting ,IPAddress ,Subscriber,AboutUs,FAQ ,User, Product,insta_post, Otp,Address, category ,cart ,Wishlist ,Setting,order_details, Size}; 
+module.exports = {home_setting ,IPAddress,Rating ,Subscriber,AboutUs,FAQ ,User, Product,insta_post, Otp,Address, category ,cart ,Wishlist ,Setting,order_details, Size}; 
