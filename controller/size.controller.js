@@ -123,7 +123,7 @@ exports.deleteSize = async (req, res) => {
 
 exports.addReview = async (req, res) => {
     try {
-        const { product_id, rating, description } = req.body;
+        const { product_id,order_id, rating, description } = req.body;
         const user_id = req.user.id;
 
 
@@ -139,6 +139,7 @@ exports.addReview = async (req, res) => {
         const newRating = await ratingSchema.create({
             user_id,
             product_id,
+            order_id,
             rating,
             description
         });

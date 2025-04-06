@@ -2,7 +2,7 @@ const Category = require('../schema/category.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op } = require('sequelize');
-const { Setting, Product, User, Address, order_details } = require('../schema');
+const { Setting, Product, User, Address, order_details, ratingSchema } = require('../schema');
 const Order = require('../schema/order.schema');
 const Cart = require('../schema/cart.schema');
 const stripe = require('stripe')('sk_test_51R0hP8DPYqiRFj9aK46wcnApxCkAe8UMXSzPyVdIUfONAOI5pxAEJmkVU10y1665fXUuMcWBctdmGKj5lnINODhD005MwChyhy');
@@ -126,10 +126,19 @@ exports.listOrders = async (req, res) => {
                 };
             }));
 
+            const rating = await ratingSchema.findOne({
+                where: {
+                  order_id: order.id,
+                  user_id  
+                }
+              });
+
             return {
                 ...order.toJSON(),
                 products,
-                orderDetails: orderDetailsWithProductNames
+                orderDetails: orderDetailsWithProductNames,
+                is_rating_id: rating ? rating.id : null // ✅ Add rating ID if exists
+
             };
         }));
 

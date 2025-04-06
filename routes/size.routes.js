@@ -1,6 +1,6 @@
 const express = require('express');
 const { verifyAdminToken, verifyUserToken } = require('../tokenizer/token');
-const { createSize, updateSize, deleteSize, getAllSizes,editReview, getSizeById, getCategorySizeById, addReview } = require('../controller/size.controller');
+const { createSize, updateSize, deleteSize, getAllSizes,editReview, getSizeById, getCategorySizeById, addReview, getReviewById, getAllReviews } = require('../controller/size.controller');
 
 const router = express.Router();
 
@@ -12,6 +12,8 @@ router.get('/admin/size-list/:id', verifyAdminToken, getSizeById);
 router.get('/admin/category-size-list/:id', verifyAdminToken, getCategorySizeById); 
 router.post('/user/add-rating', verifyUserToken, addReview);
 router.post('/user/edit-rating/:id', verifyUserToken, editReview);
+router.get('/user/get-rating', verifyUserToken, getAllReviews);
+router.get('/user/get-rating/:id', verifyUserToken, getReviewById);
 
 
 module.exports = router;
