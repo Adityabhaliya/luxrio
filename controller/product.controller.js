@@ -495,6 +495,7 @@ exports.listProductsPaginationUserBYSlug = async (req, res) => {
     const response = {
       ...product.toJSON(), // Convert Sequelize instance to plain object
       is_wish: !!isInWishlist, // Set to true if the product is in the wishlist, otherwise false
+      is_wish_id: isInWishlist?.id 
     };
 
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress; // Get IP Address
