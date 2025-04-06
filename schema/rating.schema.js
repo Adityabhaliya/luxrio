@@ -1,37 +1,17 @@
-// models/review.js
-module.exports = (sequelize, DataTypes) => {
-    const ratingSchema = sequelize.define('ratings', {
-        id: {
-            type: DataTypes.INTEGER,
-            autoIncrement: true,
-            primaryKey: true,
-        },
 
-        user_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-        },
-        product_id: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-        },
-        rating: {
-            type: DataTypes.FLOAT,
-            allowNull: false,
-            validate: {
-                min: 1,
-                max: 5,
-            },
-        },
-        description: {
-            type: DataTypes.TEXT,
-            allowNull: true,
-        },
-    }, {
-        timestamps: true,
-    });
+const { DataTypes } = require('sequelize');
+const sequelize = require('../db/db.config');
 
-     
+const ratingSchema = sequelize.define('ratings', {
+    user_id: { type: DataTypes.INTEGER, allowNull: false },
+    product_id: { type: DataTypes.JSON, allowNull: false }, // Store multiple product IDs as JSON array
+    description: { type: DataTypes.TEXT, allowNull: false },
+    rating: { type: DataTypes.FLOAT, allowNull: false }, // INR or USD
+    
+}, {
+    timestamps: true,
+    paranoid: true,
+});
 
-    return ratingSchema;
-};
+module.exports = ratingSchema;
+
