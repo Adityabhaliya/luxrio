@@ -16,5 +16,6 @@ const AboutUs = require('./about.schema');
 const Subscriber = require('./subscriber.schema');
 const IPAddress = require('./ip.schema');
 const ratingSchema = require('./rating.schema');
+const orderlikes = require('./orderlikes.schema');
 
-module.exports = { home_setting, IPAddress, ratingSchema, Subscriber, AboutUs, FAQ, User, Product, insta_post, Otp, Address, category, cart, Wishlist, Setting, order_details, Size }; 
+module.exports = { home_setting,orderlikes, IPAddress, ratingSchema, Subscriber, AboutUs, FAQ, User, Product, insta_post, Otp, Address, category, cart, Wishlist, Setting, order_details, Size }; 
