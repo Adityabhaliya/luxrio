@@ -11,8 +11,7 @@ const orderlikes = sequelize.define('orderlikes', {
     is_unlike: { type: DataTypes.BOOLEAN, defaultValue: false } 
 }, {
     timestamps: true,
-    paranoid: true,
-});
+ });
 
 module.exports = orderlikes;
 
