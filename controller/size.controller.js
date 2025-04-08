@@ -381,16 +381,25 @@ exports.updateRatingLikeUnlike = async (req, res) => {
       if(rate_like === true){
         if(orderLike.is_like === true){
           rating.rate_like -= 1;
+          orderLike.is_like = false;
+
+        }else{
+          rating.rate_like += 1;
+          orderLike.is_like = true;
+
         }
-        orderLike.is_like = false;
 
       }
 
       if(rate_unlike === true){
         if(orderLike.is_unlike === true){
           rating.rate_unlike -= 1;
-        }
         orderLike.is_unlike = false;
+
+        }else{
+          rating.rate_unlike += 1;
+          orderLike.is_unlike = true;
+        }
 
       }
 
