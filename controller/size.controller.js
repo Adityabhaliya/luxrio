@@ -2,7 +2,7 @@ const Category = require('../schema/category.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op, where } = require('sequelize');
-const { Setting, Size,  order_details, User, orderlikes } = require('../schema');
+const { Setting, Size, order_details, User, orderlikes } = require('../schema');
 const axios = require('axios');
 const ratingSchema = require('../schema/rating.schema');
 const moment = require('moment'); // import moment
@@ -378,26 +378,28 @@ exports.updateRatingLikeUnlike = async (req, res) => {
     // Case 2: Increment toggling
     if (orderLike) {
 
-      if(rate_like === true){
-        if(orderLike.is_like === true){
+      if (rate_like === true) {
+        if (orderLike.is_like === true) {
           rating.rate_like -= 1;
           orderLike.is_like = false;
 
-        }else{
+        } else {
           rating.rate_like += 1;
+          rating.rate_unlike -= 1;
           orderLike.is_like = true;
 
         }
 
       }
 
-      if(rate_unlike === true){
-        if(orderLike.is_unlike === true){
+      if (rate_unlike === true) {
+        if (orderLike.is_unlike === true) {
           rating.rate_unlike -= 1;
-        orderLike.is_unlike = false;
+          orderLike.is_unlike = false;
 
-        }else{
+        } else {
           rating.rate_unlike += 1;
+          rating.rate_like -= 1;
           orderLike.is_unlike = true;
         }
 
