@@ -385,7 +385,6 @@ exports.updateRatingLikeUnlike = async (req, res) => {
 
         } else {
           rating.rate_like += 1;
-          rating.rate_unlike -= 1;
           rating.rate_unlike = Math.max(0, rating.rate_unlike - 1);
 
           orderLike.is_like = true;
@@ -401,7 +400,7 @@ exports.updateRatingLikeUnlike = async (req, res) => {
 
         } else {
           rating.rate_unlike += 1;
-           rating.rate_like = Math.max(0, rating.rate_like - 1);
+          rating.rate_like = Math.max(0, rating.rate_like - 1);
 
           orderLike.is_unlike = true;
         }
@@ -426,7 +425,7 @@ exports.updateRatingLikeUnlike = async (req, res) => {
         }
         if (orderLike.is_unlike === false) {
           rating.rate_unlike += 1;
-          
+
         }
 
         orderLike.is_like = false;
