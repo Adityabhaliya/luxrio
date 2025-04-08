@@ -1,4 +1,4 @@
-const { User, Otp, Subscriber } = require('../schema');
+const { User, Otp, Subscriber, contacts } = require('../schema');
 const { generateToken } = require('../tokenizer/token');
 const bcrypt = require('bcrypt');
 const { sendOtpEmail, paginate } = require('../utils/common');
@@ -356,5 +356,64 @@ exports.logout = async (req, res) => {
             success: false,
             error: error.message
         });
+    }
+};
+
+
+exports.createContact = async (req, res) => {
+    try {
+      const { name, email, phone, message } = req.body;
+  
+      // Basic validation
+      if (!name || !email || !phone || !message) {
+        return res.status(400).json({
+          success: false,
+          message: "All fields are required: name, email, phone, message"
+        });
+      }
+  
+      // Save to DB
+      const newContact = await contacts.create({
+        name,
+        email,
+        phone,
+        message
+      });
+  
+      res.status(201).json({
+        success: true,
+        message: "Contact message submitted successfully.",
+        data: newContact
+      });
+  
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Server error.",
+        error: error.message
+      });
+    }
+  };
+
+
+  exports.listContact = async (req, res) => {
+    try {
+        const { page = 1, size = 10, s = '' } = req.query; // Search term 's'
+
+        const whereCondition = { deletedAt: null };
+
+        if (s) {
+            whereCondition[Op.or] = [
+              { email: { [Op.like]: `%${s}%` } },
+              { name: { [Op.like]: `%${s}%` } },
+              { phone: { [Op.like]: `%${s}%` } }
+            ];
+          }
+
+        const result = await paginate(contacts, page, size, whereCondition);
+
+        res.status(200).json({ success: true, ...result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
     }
 };
