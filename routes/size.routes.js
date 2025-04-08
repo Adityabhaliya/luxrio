@@ -16,7 +16,7 @@ router.get('/user/get-rating', verifyUserToken, getAllReviews);
 router.get('/user/get-rating/:id', verifyUserToken, getReviewById); 
 router.get('/user/get-randomrating', verifyUserToken, getSampleRatings);
 router.get('/user/get-product-review/:id', verifyUserToken, getProductReview);
- router.post('user/like-unlike',verifyUserToken, updateRatingLikeUnlike);
+router.post('/user/like-unlike',verifyUserToken, updateRatingLikeUnlike);
 
 
 
