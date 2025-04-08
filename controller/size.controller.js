@@ -401,7 +401,7 @@ exports.getProductReview = async (req, res) => {
       success: true,
       message: "Product reviews fetched successfully.",
       average_rating: parseFloat(averageRating),
-      rating_counts: ratingCounts,
+      rating_counts: [ratingCounts[1], ratingCounts[2], ratingCounts[3], ratingCounts[4], ratingCounts[5]],
       total_reviews: ratings.length,
       data: ratingsWithUser
     });
