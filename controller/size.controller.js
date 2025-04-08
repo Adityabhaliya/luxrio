@@ -269,17 +269,79 @@ exports.getSampleRatings = async (req, res) => {
 
 
 
+// exports.getProductReview = async (req, res) => {
+//   try {
+//     const user_id = req.user.id;
+
+//     const product_id = req.params.id;
+
+//     if (!product_id) {
+//       return res.status(400).json({ success: false, message: "Product ID is required." });
+//     }
+
+//     // Step 1: Find all order_details with this product_id
+//     const orderDetails = await order_details.findAll({
+//       where: { product_id }
+//     });
+
+//     if (!orderDetails || orderDetails.length === 0) {
+//       return res.status(404).json({ success: false, message: "No orders found for this product." });
+//     }
+
+//     // Step 2: Extract order_ids from orderDetails
+//     const orderIds = orderDetails.map(detail => detail.order_id);
+
+//     // Step 3: Find ratings where order_id is in those orderIds
+//     const ratings = await ratingSchema.findAll({
+//       where: {
+//         order_id: orderIds
+//       }
+//     });
+
+//     // Step 4: Add user and timeAgo field
+//     const ratingsWithUser = await Promise.all(ratings.map(async (rating) => {
+//       const user = await User.findOne({ where: { id: rating.user_id } });
+//       const likeData = await orderlikes.findOne({
+//         where: {
+//           user_id,
+//           rating_id: rating.id
+//         }
+//       });
+
+
+//       return {
+//         ...rating.toJSON(),
+//         user: user ? {
+//           id: user.id,
+//           name: user.name,
+//           lastname: user.lastname,
+//           email: user.email
+//         } : null,
+//         timeAgo: moment(rating.createdAt).fromNow(), // e.g., "2 days ago"
+//         is_like: likeData ? likeData.is_like : false,
+//         is_unlike: likeData ? likeData.is_unlike : false
+//       };
+//     }));
+
+//     res.status(200).json({
+//       success: true,
+//       message: "Product reviews fetched successfully.",
+//       data: ratingsWithUser
+//     });
+//   } catch (error) {
+//     res.status(500).json({ success: false, error: error.message });
+//   }
+// };
+
 exports.getProductReview = async (req, res) => {
   try {
     const user_id = req.user.id;
-
     const product_id = req.params.id;
 
     if (!product_id) {
       return res.status(400).json({ success: false, message: "Product ID is required." });
     }
 
-    // Step 1: Find all order_details with this product_id
     const orderDetails = await order_details.findAll({
       where: { product_id }
     });
@@ -288,17 +350,30 @@ exports.getProductReview = async (req, res) => {
       return res.status(404).json({ success: false, message: "No orders found for this product." });
     }
 
-    // Step 2: Extract order_ids from orderDetails
     const orderIds = orderDetails.map(detail => detail.order_id);
 
-    // Step 3: Find ratings where order_id is in those orderIds
     const ratings = await ratingSchema.findAll({
       where: {
         order_id: orderIds
       }
     });
 
-    // Step 4: Add user and timeAgo field
+    // Rating summary stats
+    const ratingCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    let totalRating = 0;
+
+    ratings.forEach(r => {
+      const rate = r.rating;
+      if (rate >= 1 && rate <= 5) {
+        ratingCounts[rate] += 1;
+        totalRating += rate;
+      }
+    });
+
+    const averageRating = ratings.length > 0
+      ? (totalRating / ratings.length).toFixed(1)
+      : 0;
+
     const ratingsWithUser = await Promise.all(ratings.map(async (rating) => {
       const user = await User.findOne({ where: { id: rating.user_id } });
       const likeData = await orderlikes.findOne({
@@ -307,6 +382,7 @@ exports.getProductReview = async (req, res) => {
           rating_id: rating.id
         }
       });
+
       return {
         ...rating.toJSON(),
         user: user ? {
@@ -315,7 +391,7 @@ exports.getProductReview = async (req, res) => {
           lastname: user.lastname,
           email: user.email
         } : null,
-        timeAgo: moment(rating.createdAt).fromNow(), // e.g., "2 days ago"
+        timeAgo: moment(rating.createdAt).fromNow(),
         is_like: likeData ? likeData.is_like : false,
         is_unlike: likeData ? likeData.is_unlike : false
       };
@@ -324,13 +400,15 @@ exports.getProductReview = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Product reviews fetched successfully.",
+      average_rating: parseFloat(averageRating),
+      rating_counts: ratingCounts,
+      total_reviews: ratings.length,
       data: ratingsWithUser
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
-
 
 
 exports.updateRatingLikeUnlike = async (req, res) => {
@@ -399,16 +477,16 @@ exports.updateRatingLikeUnlike = async (req, res) => {
     await orderLike.save();
     await rating.save();
     
-    return res.status(200).json({ success: true, message: "Rating updated successfully." });
+    return res.status(200).json({ success: true, message: "Rating updated successfully.",data: {
+      rate_like: rating.rate_like,
+      rate_unlike: rating.rate_unlike
+    } });
     
-    res.status(200).json({
-      success: true,
-      message: "Rating like/unlike updated successfully.",
-      data: {
-        rate_like: rating.rate_like,
-        rate_unlike: rating.rate_unlike
-      }
-    });
+    // res.status(200).json({
+    //   success: true,
+    //   message: "Rating like/unlike updated successfully.",
+      
+    // });
 
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
