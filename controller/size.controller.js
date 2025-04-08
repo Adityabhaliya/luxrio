@@ -346,96 +346,61 @@ exports.updateRatingLikeUnlike = async (req, res) => {
     if (!rating) {
       return res.status(404).json({ success: false, message: "Rating not found." });
     }
-
-    // Check if entry exists in orderlikes table
-    let orderLike = await orderlikes.findOne({
-      where: { rating_id, user_id }
-    });
-
-    // Case 1: New Like/Unlike action
+    
+    let orderLike = await orderlikes.findOne({ where: { rating_id, user_id } });
+    
+    // If no like/unlike record exists, create a new one
     if (!orderLike) {
-      const newLike = {
+      orderLike = await orderlikes.create({
         user_id,
         rating_id,
         is_like: false,
         is_unlike: false
-      };
-
-      if (rate_like === true) {
-        rating.rate_like += 1;
-        newLike.is_like = true;
-      }
-
-      if (rate_unlike === true) {
-        rating.rate_unlike += 1;
-        newLike.is_unlike = true;
-      }
-
-      await orderlikes.create(newLike);
-      await rating.save();
+      });
     }
-
-    // Case 2: Increment toggling
-    if (orderLike) {
-
-      if (rate_like === true) {
-        if (orderLike.is_like === true) {
-          rating.rate_like -= 1;
-          orderLike.is_like = false;
-
-        } else {
-          rating.rate_like += 1;
-          rating.rate_unlike = Math.max(0, rating.rate_unlike - 1);
-
-          orderLike.is_like = true;
-
-        }
-
-      }
-
-      if (rate_unlike === true) {
-        if (orderLike.is_unlike === true) {
-          rating.rate_unlike -= 1;
-          orderLike.is_unlike = false;
-
-        } else {
-          rating.rate_unlike += 1;
-          rating.rate_like = Math.max(0, rating.rate_like - 1);
-
-          orderLike.is_unlike = true;
-        }
-
-      }
-
-      if (like_increment === true) {
-        if (orderLike.is_unlike === true) {
+    
+    // Handle Like
+    if (rate_like === true) {
+      if (orderLike.is_like) {
+        // User clicked again to remove like
+        rating.rate_like = Math.max(0, rating.rate_like - 1);
+        orderLike.is_like = false;
+      } else {
+        // Switching from unlike to like
+        if (orderLike.is_unlike) {
           rating.rate_unlike = Math.max(0, rating.rate_unlike - 1);
         }
-        if (orderLike.is_like === false) {
-          rating.rate_like += 1;
-        }
-
+    
+        rating.rate_like += 1;
         orderLike.is_like = true;
         orderLike.is_unlike = false;
       }
-
-      if (unlike_increment === true) {
-        if (orderLike.is_like === true) {
+    }
+    
+    // Handle Unlike
+    if (rate_unlike === true) {
+      if (orderLike.is_unlike) {
+        // User clicked again to remove unlike
+        rating.rate_unlike = Math.max(0, rating.rate_unlike - 1);
+        orderLike.is_unlike = false;
+      } else {
+        // Switching from like to unlike
+        if (orderLike.is_like) {
           rating.rate_like = Math.max(0, rating.rate_like - 1);
         }
-        if (orderLike.is_unlike === false) {
-          rating.rate_unlike += 1;
-
-        }
-
-        orderLike.is_like = false;
+    
+        rating.rate_unlike += 1;
         orderLike.is_unlike = true;
+        orderLike.is_like = false;
       }
-
-      await orderLike.save();
-      await rating.save();
     }
-
+    
+    // Save updated values
+    await orderLike.save();
+    await rating.save();
+    
+    return res.status(200).json({ success: true, message: "Rating updated successfully." });
+    
     res.status(200).json({
       success: true,
       message: "Rating like/unlike updated successfully.",
