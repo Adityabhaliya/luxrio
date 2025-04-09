@@ -157,6 +157,15 @@ exports.getSettings = async (req, res) => {
     }
 };
 
+exports.getSettings1 = async (req, res) => {
+    try {
+        const settings = await Setting.findOne({attributes:['email','contactus_phone_no','facebook_url','instagram_url','twitter_url'
+        ]});
+         return res.status(200).json({ success: true, settings });
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+};
 exports.updateSettings = async (req, res) => {
     try {
         const updateData = req.body;
