@@ -2,7 +2,7 @@ const Category = require('../schema/category.schema');
 const slugify = require('slugify');
 const { paginate } = require('../utils/common');
 const { Op, where } = require('sequelize');
-const { Setting, Size, order_details, User, orderlikes } = require('../schema');
+const { Setting, Size, order_details, User, orderlikes, Product } = require('../schema');
 const axios = require('axios');
 const ratingSchema = require('../schema/rating.schema');
 const moment = require('moment'); // import moment
@@ -231,13 +231,42 @@ exports.getAllReviewsAdmin = async (req, res) => {
 
       // Filter reviews to only those with matching product_ids
       reviewss = reviewss.filter(r => matchedProductIds.includes(r.product_id));
+
+       // Step 3: Get unique product IDs from filtered reviews
+    const productIds = [...new Set(reviewss.map(reviewss => reviewss.product_id))];
+
+    // Step 4: Fetch those product names
+    const products = await Product.findAll({
+      where: { id: productIds },
+      attributes: ['id', 'name']
+    });
+
+    const productMap = {};
+    products.forEach(prod => {
+      productMap[prod.id] = prod.name;
+    });
+
+    // Step 5: Add product name to reviews
+    const enrichedReviews = reviewss.map(reviewss => {
+      return {
+        ...reviewss.toJSON(),
+        product_name: productMap[reviewss.product_id] || null
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "All reviews fetched successfully.",
+      data: enrichedReviews,
+      userdata
+    });
     }
 
     // Step 3: Get unique product IDs from filtered reviews
     const productIds = [...new Set(reviews.map(review => review.product_id))];
 
     // Step 4: Fetch those product names
-    const products = await product.findAll({
+    const products = await Product.findAll({
       where: { id: productIds },
       attributes: ['id', 'name']
     });
