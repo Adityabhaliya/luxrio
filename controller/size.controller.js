@@ -198,6 +198,23 @@ exports.getAllReviews = async (req, res) => {
   }
 };
 
+exports.getAllReviewsAdmin = async (req, res) => {
+  try {
+    const user_id = req.query.user_id;
+
+    const reviews = await ratingSchema.findAll({ where: { user_id } });
+
+    res.status(200).json({
+      success: true,
+      message: "All reviews fetched successfully.",
+      data: reviews,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+
 exports.getReviewById = async (req, res) => {
   try {
     const { id } = req.params;
