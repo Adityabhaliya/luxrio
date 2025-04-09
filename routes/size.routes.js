@@ -13,7 +13,7 @@ router.get('/admin/category-size-list/:id', verifyAdminToken, getCategorySizeByI
 router.post('/user/add-rating', verifyUserToken, addReview);
 router.post('/user/edit-rating/:id', verifyUserToken, editReview);
 router.get('/user/get-rating', verifyUserToken, getAllReviews);
-router.get('/admin/get-rating', verifyUserToken, getAllReviewsAdmin);
+router.get('/admin/get-rating', verifyAdminToken, getAllReviewsAdmin);
 router.get('/user/get-rating/:id', verifyUserToken, getReviewById); 
 router.get('/user/get-randomrating', verifyUserToken, getSampleRatings);
 router.get('/user/get-product-review/:id', verifyUserToken, getProductReview);
