@@ -43,7 +43,7 @@ exports.editCategory = async (req, res) => {
             });
 
             // Update each product's category to the new name
-            await Promise.all(products.map(product => 
+            await Promise.all(products.map(product =>
                 Product.update(
                     { category: name },
                     { where: { id: product.id } }
@@ -84,7 +84,7 @@ exports.listCategories = async (req, res) => {
 
 exports.listCategoriesUser = async (req, res) => {
     try {
-        const categories = await Category.findAll({ where: { deletedAt: null ,is_block:false } });
+        const categories = await Category.findAll({ where: { deletedAt: null, is_block: false } });
         res.status(200).json({ success: true, categories });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -122,7 +122,7 @@ exports.getCategoryBySlug = async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 };
- 
+
 exports.adminCategoryBlock = async (req, res) => {
     try {
         const { id, is_block } = req.body; // Get category ID & block status from request
@@ -151,7 +151,7 @@ exports.getSettings = async (req, res) => {
     try {
         const settings = await Setting.findOne();
         const about = await AboutUs.findOne();
-        return res.status(200).json({ success: true, settings ,about });
+        return res.status(200).json({ success: true, settings, about });
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
     }
@@ -161,7 +161,7 @@ exports.updateSettings = async (req, res) => {
     try {
         const updateData = req.body;
         let settings = await Setting.findOne();
-        
+
         if (settings) {
             await settings.update(updateData);
         } else {
@@ -173,3 +173,20 @@ exports.updateSettings = async (req, res) => {
         return res.status(500).json({ success: false, error: error.message });
     }
 };
+
+exports.updateContactSettings = async (req, res) => {
+    try {
+        const updateData = req.body;
+        let settings = await Setting.findOne();
+
+        if (settings) {
+            await settings.update(updateData);
+        } else {
+            settings = await Setting.create(updateData);
+        }
+
+        return res.status(200).json({ success: true, message: 'Settings updated successfully', settings });
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+}

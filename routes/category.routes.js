@@ -1,5 +1,5 @@
  const express = require('express');
-const { createCategory, editCategory, deleteCategory, listCategories,listCategoriesUser,adminCategoryBlock, getCategoryBySlug, listCategoriesPagination, getSettings, updateSettings } = require('../controller/category.controller');
+const { createCategory, editCategory, updateContactSettings ,deleteCategory, listCategories,listCategoriesUser,adminCategoryBlock, getCategoryBySlug, listCategoriesPagination, getSettings, updateSettings } = require('../controller/category.controller');
 const { verifyAdminToken, verifyUserToken } = require('../tokenizer/token');
 
 const router = express.Router();
@@ -12,7 +12,8 @@ router.get('/user/category-list',listCategoriesUser);
 router.get('/admin/category-list-page', listCategoriesPagination);
 router.get('/admin/category-list/:slug', getCategoryBySlug);
 router.put('/admin/category-block', verifyAdminToken ,adminCategoryBlock);
-router.post('/admin/setting', verifyAdminToken ,updateSettings);
+router.post('/admin/setting', verifyAdminToken ,updateSettings); 
+router.post('/admin/contact-us', verifyAdminToken ,updateContactSettings);
 router.get('/admin/setting-list', verifyAdminToken ,getSettings);
 
 
