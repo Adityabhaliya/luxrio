@@ -208,79 +208,77 @@ exports.getAllReviewsAdmin = async (req, res) => {
       attributes: ['email', 'name']
     });
 
-    // Step 1: Get all reviews by this user
+    // Get all reviews for this user
     let reviews = await ratingSchema.findAll({
       where: { user_id }
     });
 
-    let reviewss = await ratingSchema.findAll({
-      where: { }
-    });
-
-    // Step 2: If search term exists, filter based on product name
     if (s) {
-      // Find product IDs where name matches search
+      // Find matching product IDs from search string
       const matchingProducts = await product.findAll({
         where: {
           name: { [Op.like]: `%${s}%` }
         },
-        attributes: ['id']
+        attributes: ['id', 'name']
       });
 
       const matchedProductIds = matchingProducts.map(p => p.id);
 
-      // Filter reviews to only those with matching product_ids
-      reviewss = reviewss.filter(r => matchedProductIds.includes(r.product_id));
+      // Filter reviews where product_id array includes any matched ID
+      reviews = reviews.filter(review => {
+        try {
+          const productIds = JSON.parse(review.product_id); // parse "[1,2]"
+          return matchedProductIds.some(pid => productIds.includes(pid));
+        } catch (err) {
+          return false; // in case JSON parsing fails
+        }
+      });
 
-       // Step 3: Get unique product IDs from filtered reviews
-    const productIds = [...new Set(reviewss.map(reviewss => reviewss.product_id))];
+      // Add product names to map (from matched products)
+      const productMap = {};
+      matchingProducts.forEach(p => {
+        productMap[p.id] = p.name;
+      });
 
-    // Step 4: Fetch those product names
-    const products = await Product.findAll({
-      where: { id: productIds },
-      attributes: ['id', 'name']
-    });
+      const enrichedReviews = reviews.map(review => {
+        const ids = JSON.parse(review.product_id || '[]');
+        return {
+          ...review.toJSON(),
+          product_name: ids.map(id => productMap[id] || null).filter(Boolean).join(', ')
+        };
+      });
 
-    const productMap = {};
-    products.forEach(prod => {
-      productMap[prod.id] = prod.name;
-    });
-
-    // Step 5: Add product name to reviews
-    const enrichedReviews = reviewss.map(reviewss => {
-      return {
-        ...reviewss.toJSON(),
-        product_name: productMap[reviewss.product_id] || null
-      };
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "All reviews fetched successfully.",
-      data: enrichedReviews,
-      userdata
-    });
+      return res.status(200).json({
+        success: true,
+        message: "Filtered reviews fetched successfully.",
+        data: enrichedReviews,
+        userdata
+      });
     }
 
-    // Step 3: Get unique product IDs from filtered reviews
-    const productIds = [...new Set(reviews.map(review => review.product_id))];
+    // If no search, still enrich with product names
+    const allProductIds = new Set();
+    reviews.forEach(review => {
+      try {
+        JSON.parse(review.product_id || '[]').forEach(id => allProductIds.add(id));
+      } catch {}
+    });
 
-    // Step 4: Fetch those product names
-    const products = await Product.findAll({
-      where: { id: productIds },
+    const products = await product.findAll({
+      where: { id: Array.from(allProductIds) },
       attributes: ['id', 'name']
     });
 
     const productMap = {};
-    products.forEach(prod => {
-      productMap[prod.id] = prod.name;
+    products.forEach(p => {
+      productMap[p.id] = p.name;
     });
 
-    // Step 5: Add product name to reviews
     const enrichedReviews = reviews.map(review => {
+      const ids = JSON.parse(review.product_id || '[]');
       return {
         ...review.toJSON(),
-        product_name: productMap[review.product_id] || null
+        product_name: ids.map(id => productMap[id] || null).filter(Boolean).join(', ')
       };
     });
 
@@ -290,10 +288,12 @@ exports.getAllReviewsAdmin = async (req, res) => {
       data: enrichedReviews,
       userdata
     });
+
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
 
 
 
