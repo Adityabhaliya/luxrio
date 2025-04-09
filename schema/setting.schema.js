@@ -10,6 +10,11 @@ const Setting = sequelize.define('settings', {
     privacy_policy: { type: DataTypes.STRING, allowNull: true },
     term_condition: { type: DataTypes.STRING, allowNull: true },
     stripe_secret_key: { type: DataTypes.STRING, allowNull: true },
+    twitter_url: { type: DataTypes.STRING, allowNull: true },
+    instagram_url: { type: DataTypes.STRING, allowNull: true },
+    facebook_url: { type: DataTypes.STRING, allowNull: true },
+    contactus_phone_no: { type: DataTypes.STRING, allowNull: true },
+    email: { type: DataTypes.STRING, allowNull: true },
 }, {
     timestamps: true,
     paranoid: true,
