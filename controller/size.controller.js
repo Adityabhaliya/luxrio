@@ -201,18 +201,72 @@ exports.getAllReviews = async (req, res) => {
 exports.getAllReviewsAdmin = async (req, res) => {
   try {
     const user_id = req.query.user_id;
+    const s = req.query.s;
 
-    const reviews = await ratingSchema.findAll({ where: { user_id } });
+    const userdata = await User.findOne({
+      where: { id: user_id },
+      attributes: ['email', 'name']
+    });
+
+    // Step 1: Get all reviews by this user
+    let reviews = await ratingSchema.findAll({
+      where: { user_id }
+    });
+
+    let reviewss = await ratingSchema.findAll({
+      where: { }
+    });
+
+    // Step 2: If search term exists, filter based on product name
+    if (s) {
+      // Find product IDs where name matches search
+      const matchingProducts = await product.findAll({
+        where: {
+          name: { [Op.like]: `%${s}%` }
+        },
+        attributes: ['id']
+      });
+
+      const matchedProductIds = matchingProducts.map(p => p.id);
+
+      // Filter reviews to only those with matching product_ids
+      reviewss = reviewss.filter(r => matchedProductIds.includes(r.product_id));
+    }
+
+    // Step 3: Get unique product IDs from filtered reviews
+    const productIds = [...new Set(reviews.map(review => review.product_id))];
+
+    // Step 4: Fetch those product names
+    const products = await product.findAll({
+      where: { id: productIds },
+      attributes: ['id', 'name']
+    });
+
+    const productMap = {};
+    products.forEach(prod => {
+      productMap[prod.id] = prod.name;
+    });
+
+    // Step 5: Add product name to reviews
+    const enrichedReviews = reviews.map(review => {
+      return {
+        ...review.toJSON(),
+        product_name: productMap[review.product_id] || null
+      };
+    });
 
     res.status(200).json({
       success: true,
       message: "All reviews fetched successfully.",
-      data: reviews,
+      data: enrichedReviews,
+      userdata
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
+
 
 
 exports.getReviewById = async (req, res) => {
@@ -441,9 +495,9 @@ exports.updateRatingLikeUnlike = async (req, res) => {
     if (!rating) {
       return res.status(404).json({ success: false, message: "Rating not found." });
     }
-    
+
     let orderLike = await orderlikes.findOne({ where: { rating_id, user_id } });
-    
+
     // If no like/unlike record exists, create a new one
     if (!orderLike) {
       orderLike = await orderlikes.create({
@@ -453,7 +507,7 @@ exports.updateRatingLikeUnlike = async (req, res) => {
         is_unlike: false
       });
     }
-    
+
     // Handle Like
     if (rate_like === true) {
       if (orderLike.is_like) {
@@ -465,13 +519,13 @@ exports.updateRatingLikeUnlike = async (req, res) => {
         if (orderLike.is_unlike) {
           rating.rate_unlike = Math.max(0, rating.rate_unlike - 1);
         }
-    
+
         rating.rate_like += 1;
         orderLike.is_like = true;
         orderLike.is_unlike = false;
       }
     }
-    
+
     // Handle Unlike
     if (rate_unlike === true) {
       if (orderLike.is_unlike) {
@@ -483,26 +537,28 @@ exports.updateRatingLikeUnlike = async (req, res) => {
         if (orderLike.is_like) {
           rating.rate_like = Math.max(0, rating.rate_like - 1);
         }
-    
+
         rating.rate_unlike += 1;
         orderLike.is_unlike = true;
         orderLike.is_like = false;
       }
     }
-    
+
     // Save updated values
     await orderLike.save();
     await rating.save();
-    
-    return res.status(200).json({ success: true, message: "Rating updated successfully.",data: {
-      rate_like: rating.rate_like,
-      rate_unlike: rating.rate_unlike
-    } });
-    
+
+    return res.status(200).json({
+      success: true, message: "Rating updated successfully.", data: {
+        rate_like: rating.rate_like,
+        rate_unlike: rating.rate_unlike
+      }
+    });
+
     // res.status(200).json({
     //   success: true,
     //   message: "Rating like/unlike updated successfully.",
-      
+
     // });
 
   } catch (error) {
