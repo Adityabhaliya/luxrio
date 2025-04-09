@@ -215,7 +215,7 @@ exports.getAllReviewsAdmin = async (req, res) => {
 
     if (s) {
       // Find matching product IDs from search string
-      const matchingProducts = await product.findAll({
+      const matchingProducts = await Product.findAll({
         where: {
           name: { [Op.like]: `%${s}%` }
         },
@@ -264,7 +264,7 @@ exports.getAllReviewsAdmin = async (req, res) => {
       } catch {}
     });
 
-    const products = await product.findAll({
+    const products = await Product.findAll({
       where: { id: Array.from(allProductIds) },
       attributes: ['id', 'name']
     });
