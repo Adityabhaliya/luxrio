@@ -270,6 +270,16 @@ exports.adminUserDetails = async (req, res) => {
     }
 };
 
+exports.adminUserdrop = async (req, res) => {
+    try {
+        const result = await User.findAll({ where: { role: 2 } ,attributes:['id','name'] })
+        return res.status(200).json({ success: true, ...result });
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+
 exports.UserDetails = async (req, res) => {
     try {
         const user_id = req.user.id;
@@ -346,7 +356,7 @@ exports.SubscriberList = async (req, res) => {
 
 exports.logout = async (req, res) => {
     try {
-  
+
         return res.status(200).json({
             success: true,
             message: "Logout successful"
@@ -362,41 +372,41 @@ exports.logout = async (req, res) => {
 
 exports.createContact = async (req, res) => {
     try {
-      const { name, email, phone, message } = req.body;
-  
-      // Basic validation
-      if (!name || !email || !phone || !message) {
-        return res.status(400).json({
-          success: false,
-          message: "All fields are required: name, email, phone, message"
+        const { name, email, phone, message } = req.body;
+
+        // Basic validation
+        if (!name || !email || !phone || !message) {
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required: name, email, phone, message"
+            });
+        }
+
+        // Save to DB
+        const newContact = await contacts.create({
+            name,
+            email,
+            phone,
+            message
         });
-      }
-  
-      // Save to DB
-      const newContact = await contacts.create({
-        name,
-        email,
-        phone,
-        message
-      });
-  
-      res.status(201).json({
-        success: true,
-        message: "Contact message submitted successfully.",
-        data: newContact
-      });
-  
+
+        res.status(201).json({
+            success: true,
+            message: "Contact message submitted successfully.",
+            data: newContact
+        });
+
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Server error.",
-        error: error.message
-      });
+        res.status(500).json({
+            success: false,
+            message: "Server error.",
+            error: error.message
+        });
     }
-  };
+};
 
 
-  exports.listContact = async (req, res) => {
+exports.listContact = async (req, res) => {
     try {
         const { page = 1, size = 10, s = '' } = req.query; // Search term 's'
 
@@ -404,11 +414,11 @@ exports.createContact = async (req, res) => {
 
         if (s) {
             whereCondition[Op.or] = [
-              { email: { [Op.like]: `%${s}%` } },
-              { name: { [Op.like]: `%${s}%` } },
-              { phone: { [Op.like]: `%${s}%` } }
+                { email: { [Op.like]: `%${s}%` } },
+                { name: { [Op.like]: `%${s}%` } },
+                { phone: { [Op.like]: `%${s}%` } }
             ];
-          }
+        }
 
         const result = await paginate(contacts, page, size, whereCondition);
 
