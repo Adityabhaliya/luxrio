@@ -11,7 +11,7 @@ router.get('/user/order-list', verifyUserToken, listOrders);
 router.get('/admin/order-list', verifyAdminToken, listOrdersAdmin);
 router.put('/admin/order-status', verifyAdminToken, editOrderStatus);
  
-router.patch('/admin/download-order-details/:order_id', getOrderDetailsPdf);
+router.patch('/user/download-order-details/:order_id', verifyUserToken,getOrderDetailsPdf);
 
 
 module.exports = router;

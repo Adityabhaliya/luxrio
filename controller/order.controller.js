@@ -502,7 +502,7 @@ exports.getOrderDetailsPdf = async (req, res) => {
     const productIds = [...new Set(orders.map(order => order.product_id).flat())];
 
     // 3. Find product names
-    const products = await product.findAll({
+    const products = await Product.findAll({
       where: { id: productIds },
       attributes: ['id', 'name']
     });
