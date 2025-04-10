@@ -1,7 +1,7 @@
 const express = require('express');
 const { createCategory, editCategory, deleteCategory, listCategories,listCategoriesUser,adminCategoryBlock, getCategoryBySlug, listCategoriesPagination, getSettings, updateSettings } = require('../controller/category.controller');
 const { verifyAdminToken, verifyUserToken } = require('../tokenizer/token');
-const { createOrder, verifyOrder, listOrders,editOrderStatus, listOrdersAdmin } = require('../controller/order.controller');
+const { createOrder, verifyOrder, listOrders,editOrderStatus,getOrderDetailsPdf, listOrdersAdmin } = require('../controller/order.controller');
 
 const router = express.Router();
 
@@ -11,6 +11,7 @@ router.get('/user/order-list', verifyUserToken, listOrders);
 router.get('/admin/order-list', verifyAdminToken, listOrdersAdmin);
 router.put('/admin/order-status', verifyAdminToken, editOrderStatus);
  
+router.patch('/admin/download-order-details/:order_id', getOrderDetailsPdf);
 
 
 module.exports = router;

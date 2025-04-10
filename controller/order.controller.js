@@ -7,6 +7,8 @@ const Order = require('../schema/order.schema');
 const Cart = require('../schema/cart.schema');
 const stripe = require('stripe')('sk_test_51R0hP8DPYqiRFj9aK46wcnApxCkAe8UMXSzPyVdIUfONAOI5pxAEJmkVU10y1665fXUuMcWBctdmGKj5lnINODhD005MwChyhy');
 const axios = require('axios');
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
 
 exports.createOrder = async (req, res) => {
     try {
@@ -483,3 +485,75 @@ exports.editOrderStatus = async (req, res) => {
     }
 };
 
+
+  
+exports.getOrderDetailsPdf = async (req, res) => {
+  try {
+    const { order_id } = req.params;
+
+    // 1. Get all order details for the order_id
+    const orders = await order_details.findAll({ where: { order_id } });
+
+    if (!orders.length) {
+      return res.status(404).json({ success: false, message: "No orders found for this ID" });
+    }
+
+    // 2. Extract product_ids (in case it's a JSON array or single value)
+    const productIds = [...new Set(orders.map(order => order.product_id).flat())];
+
+    // 3. Find product names
+    const products = await product.findAll({
+      where: { id: productIds },
+      attributes: ['id', 'name']
+    });
+
+    const productMap = {};
+    products.forEach(p => {
+      productMap[p.id] = p.name;
+    });
+
+    // 4. Enrich order details with product names
+    const enrichedOrders = orders.map(order => ({
+      ...order.toJSON(),
+      product_name: productMap[order.product_id] || 'N/A'
+    }));
+
+    // 5. Generate PDF
+    const doc = new PDFDocument();
+    let buffers = [];
+    doc.on('data', buffers.push.bind(buffers));
+    doc.on('end', () => {
+      const pdfData = Buffer.concat(buffers);
+      res
+        .writeHead(200, {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename=order_${order_id}.pdf`,
+          'Content-Length': pdfData.length
+        })
+        .end(pdfData);
+    });
+
+    doc.fontSize(18).text(`Order Report - Order ID: ${order_id}`, { underline: true });
+    doc.moveDown();
+
+    enrichedOrders.forEach((order, index) => {
+      doc.fontSize(12).text(
+        `#${index + 1}
+        Product: ${order.product_name}
+        Quantity: ${order.quantity}
+        Amount: ${order.amount}
+        Size: ${order.size}
+        Carat: ${order.carat}
+        Material: ${order.material_type}
+        Weight: ${order.weight}
+        `
+      );
+      doc.moveDown();
+    });
+
+    doc.end();
+  } catch (error) {
+    console.error("PDF generation error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
+  }
+};
