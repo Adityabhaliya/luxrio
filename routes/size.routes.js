@@ -1,6 +1,6 @@
 const express = require('express');
 const { verifyAdminToken, verifyUserToken } = require('../tokenizer/token');
-const { createSize, updateSize, deleteSize,getAllReviewsAdmin, getAllSizes,editReview, getSizeById, getCategorySizeById, addReview, getReviewById, getAllReviews, getSampleRatings, getProductReview, updateRatingLikeUnlike } = require('../controller/size.controller');
+const { createSize, updateSize, deleteSize,getAllReviewsAdmin,deleterevirew, getAllSizes,editReview, getSizeById, getCategorySizeById, addReview, getReviewById, getAllReviews, getSampleRatings, getProductReview, updateRatingLikeUnlike } = require('../controller/size.controller');
 
 const router = express.Router();
 
@@ -13,7 +13,8 @@ router.get('/admin/category-size-list/:id', verifyAdminToken, getCategorySizeByI
 router.post('/user/add-rating', verifyUserToken, addReview);
 router.post('/user/edit-rating/:id', verifyUserToken, editReview);
 router.get('/user/get-rating', verifyUserToken, getAllReviews);
-router.get('/admin/get-rating', verifyAdminToken, getAllReviewsAdmin);
+router.get('/admin/get-rating', verifyAdminToken, getAllReviewsAdmin); 
+router.delete('/admin/delete-rating/:id', verifyAdminToken, deleterevirew);
 router.get('/user/get-rating/:id', verifyUserToken, getReviewById); 
 router.get('/user/get-randomrating', verifyUserToken, getSampleRatings);
 router.get('/user/get-product-review/:id', verifyUserToken, getProductReview);

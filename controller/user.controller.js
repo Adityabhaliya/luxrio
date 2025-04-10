@@ -197,6 +197,50 @@ exports.resetPassword = async (req, res) => {
     }
 };
 
+ 
+exports.resetChangePassword = async (req, res) => {
+  try {
+     const { old_password, new_password, confirm_password } = req.body;
+
+    if (!new_password || !confirm_password) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+
+    if (new_password !== confirm_password) {
+      return res.status(400).json({ success: false, message: "Passwords do not match" });
+    }
+
+    // Find user by token
+    const user = await User.findOne({ where: { role: 1 } });
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: "Invalid or expired token" });
+    }
+
+    // If old password is provided, verify it
+    if (old_password) {
+      const isMatch = await bcrypt.compare(old_password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ success: false, message: "Old password is incorrect" });
+      }
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(new_password.toString(), 10);
+
+    // Update password and remove reset token
+    await User.update(
+      { password: hashedPassword },
+      { where: { id: user.id } }
+    );
+
+    return res.status(200).json({ success: true, message: "Password reset successful" });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
 
 
 

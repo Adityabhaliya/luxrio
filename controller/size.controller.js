@@ -261,7 +261,7 @@ exports.getAllReviewsAdmin = async (req, res) => {
     reviews.forEach(review => {
       try {
         JSON.parse(review.product_id || '[]').forEach(id => allProductIds.add(id));
-      } catch {}
+      } catch { }
     });
 
     const products = await Product.findAll({
@@ -289,6 +289,28 @@ exports.getAllReviewsAdmin = async (req, res) => {
       userdata
     });
 
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+
+exports.deleterevirew = async (req, res) => {
+  try {
+    const ratingId = req.params.id;
+
+    const review = await ratingSchema.findOne({ where: { id: ratingId } });
+
+    if (!review) {
+      return res.status(404).json({ success: false, message: 'Review not found.' });
+    }
+
+    await ratingSchema.destroy({ where: { id: ratingId } });
+
+    res.status(200).json({
+      success: true,
+      message: 'Review deleted successfully.',
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
