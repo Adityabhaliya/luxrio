@@ -528,7 +528,7 @@ exports.getOrderDetailsPdf = async (req, res) => {
       // Pipe the PDF directly to the response
       doc.pipe(res);
   
-      doc.fontSize(18).text(`Order Report - Order ID: ${order_id}`, { underline: true });
+      doc.fontSize(18).text(`Order Report - Order ID: ${orders.order_id}`, { underline: true });
       doc.moveDown();
   
       enrichedOrders.forEach((order, index) => {
@@ -544,6 +544,103 @@ exports.getOrderDetailsPdf = async (req, res) => {
           `
         );
         doc.moveDown();
+      });
+  
+      doc.end();
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
+    }
+  };
+
+  exports.AdmingetOrderDetailsPdf = async (req, res) => {
+    try {
+      const { order_id } = req.params;
+      
+      // Split comma-separated order IDs into an array
+      const orderIds = order_id.split(',').map(id => id.trim());
+  
+      // 1. Get all order details for all order_ids
+      const orders = await order_details.findAll({ 
+        where: { 
+          order_id: orderIds 
+        },
+        order: [['order_id', 'ASC']] // Optional: sort by order_id
+      });
+  
+      if (!orders.length) {
+        return res.status(404).json({ success: false, message: "No orders found for these IDs" });
+      }
+  
+      // 2. Extract product_ids (in case it's a JSON array or single value)
+      const productIds = [...new Set(orders.map(order => order.product_id).flat())];
+  
+      // 3. Find product names
+      const products = await Product.findAll({
+        where: { id: productIds },
+        attributes: ['id', 'name']
+      });
+  
+      const productMap = {};
+      products.forEach(p => {
+        productMap[p.id] = p.name;
+      });
+  
+      // 4. Enrich order details with product names and group by order_id
+      const ordersByOrderId = {};
+      orders.forEach(order => {
+        const enrichedOrder = {
+          ...order.toJSON(),
+          product_name: productMap[order.product_id] || 'N/A'
+        };
+        
+        if (!ordersByOrderId[order.order_id]) {
+          ordersByOrderId[order.order_id] = [];
+        }
+        ordersByOrderId[order.order_id].push(enrichedOrder);
+      });
+  
+      // 5. Generate PDF
+      const doc = new PDFDocument();
+      
+      // Set response headers for automatic download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="orders_${orderIds.join('_')}.pdf"`);
+      
+      // Pipe the PDF directly to the response
+      doc.pipe(res);
+  
+      // Add title
+      doc.fontSize(18).text(`Order Report${orderIds.length > 1 ? 's' : ''}`, { underline: true });
+      doc.moveDown();
+  
+      // Loop through each order group
+      Object.entries(ordersByOrderId).forEach(([currentOrderId, orderItems]) => {
+        doc.fontSize(14).text(`Order ID: ${currentOrderId}`, { underline: true });
+        doc.moveDown();
+  
+        // List all items in this order
+        orderItems.forEach((order, index) => {
+          doc.fontSize(12).text(
+            `Item #${index + 1}
+            Product: ${order.product_name}
+            Quantity: ${order.quantity}
+            Amount: ${order.amount}
+            Size: ${order.size}
+            Carat: ${order.carat}
+            Material: ${order.material_type}
+            Weight: ${order.weight}
+            `, 
+            { paragraphGap: 5 }
+          );
+          doc.moveDown();
+        });
+  
+        // Add some space between different orders if multiple
+        if (orderIds.length > 1) {
+          doc.moveDown();
+          doc.moveDown();
+        }
       });
   
       doc.end();

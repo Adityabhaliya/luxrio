@@ -1,0 +1,23 @@
+<button onclick="downloadOrderPdf(123)">Download PDF</button>
+
+<script>
+  function downloadOrderPdf(orderId) {
+    fetch(`http://localhost:3000/api/user/download-order-details/${orderId}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTEsInJvbGUiOjIsImlhdCI6MTc0NDMwNjU2NywiZXhwIjoxNzQ0MzkyOTY3fQ.su8ZRf9QhtEKAM4wo2XVEQLjufxM0LnJIJJDzxvFY7o'
+      }
+    })
+    .then(response => response.blob())
+    .then(blob => {
+      const url = window.URL.createObjectURL(new Blob([blob]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `order_${orderId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    })
+    .catch(err => console.error('Error downloading PDF:', err));
+  }
+</script>
